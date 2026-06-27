@@ -103,6 +103,27 @@
           <span class="lesson-text" id="lesson-text"></span>
         </div>
 
+        <!-- Automation Engineer Playbook -->
+        <div class="automation-box">
+          <span class="automation-label">⚙️ AUTOMATION ENGINEER'S PLAYBOOK</span>
+          <p class="automation-subtitle">What a senior QA engineer would test for this system design</p>
+
+          <div class="automation-section">
+            <span class="automation-section-label">🧪 Test Scenarios</span>
+            <ul class="test-cases-list" id="test-cases-list"></ul>
+          </div>
+
+          <div class="automation-section">
+            <span class="automation-section-label">⚠️ Edge Case Juniors Always Miss</span>
+            <p class="automation-text" id="edge-case-text"></p>
+          </div>
+
+          <div class="automation-section">
+            <span class="automation-section-label">📊 Performance Test</span>
+            <p class="automation-text" id="performance-test-text"></p>
+          </div>
+        </div>
+
         <!-- Visual Canvas -->
         <div class="svg-canvas-container">
           <div class="canvas-chrome">
@@ -448,7 +469,12 @@ Return STRICTLY raw JSON, no markdown:
   "title": "Short catchy game-style quest title",
   "story": "3-4 sentence fantasy narrative mapping components to fantasy elements, teaching the real architectural insight. End with the key tradeoff.",
   "lesson": "One plain sentence — the real architectural takeaway.",
-  "image_scene": "Describe a SPECIFIC cartoon scene where cute fantasy characters ARE the system design components doing their jobs. Name each character and what visible action they are performing (e.g. 'A fat cheerful troll in armor stands at a gate stamping DENY on tiny raven letters, while a glowing hourglass above him counts down; rows of golden token buckets line the walls behind him, each one slowly filling with sparkles'). The scene must make the system design concept obvious just by looking at it — no prior knowledge needed."
+  "image_scene": "Describe a SPECIFIC cartoon scene where cute fantasy characters ARE the system design components doing their jobs. Name each character and what visible action they are performing (e.g. 'A fat cheerful troll in armor stands at a gate stamping DENY on tiny raven letters, while a glowing hourglass above him counts down; rows of golden token buckets line the walls behind him, each one slowly filling with sparkles'). The scene must make the system design concept obvious just by looking at it — no prior knowledge needed.",
+  "automation": {
+    "test_cases": ["3 to 4 specific, actionable test scenarios a senior automation engineer would write for this exact system. Each must be a concrete test case — not vague. Include API tests, integration tests, and at least one negative/failure scenario."],
+    "edge_case": "The single most important edge case or failure scenario that junior engineers always overlook when testing this specific system — be very specific to this design.",
+    "performance_test": "One concrete load or performance test scenario relevant to this system — describe what to measure, what threshold to watch, and what tool to use (e.g. k6, Locust, Gatling)."
+  }
 }`;
 
 
@@ -477,6 +503,19 @@ Return STRICTLY raw JSON, no markdown:
         titleEl.textContent = result.title;
         storyEl.textContent = result.story;
         lessonEl.textContent = result.lesson;
+
+        // Populate automation playbook
+        const auto = result.automation || {};
+        const testList = document.getElementById('test-cases-list');
+        testList.innerHTML = '';
+        (auto.test_cases || []).forEach(tc => {
+          const li = document.createElement('li');
+          li.className = 'test-case-item';
+          li.textContent = tc;
+          testList.appendChild(li);
+        });
+        document.getElementById('edge-case-text').textContent = auto.edge_case || '';
+        document.getElementById('performance-test-text').textContent = auto.performance_test || '';
 
         // Generate image via Pollinations.ai (free, no API key needed)
         // Use the AI-generated image_scene for a quest-specific illustration
