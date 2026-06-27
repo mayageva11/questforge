@@ -447,7 +447,7 @@
           model,
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.85,
-          max_tokens: 1024,
+          max_tokens: 2500,
           response_format: { type: 'json_object' }
         })
       });
@@ -520,15 +520,15 @@ Return STRICTLY raw JSON, no markdown:
     "edge_case": "The single most important edge case or failure scenario that junior engineers always overlook when testing this specific system — be very specific to this design.",
     "performance_test": "One concrete load or performance test scenario relevant to this system — describe what to measure, what threshold to watch, and what tool to use (e.g. k6, Locust, Gatling)."
   },
-  "image_legend": [
-    "emoji + fantasy element name = system design concept it represents (repeat this format for 4-5 key elements visible in the scene)"
-  ],
   "test_architecture": {
-    "e2e": ["2-3 specific E2E test scenarios for this exact system — what a real user flow looks like end-to-end"],
-    "integration": ["2-3 specific integration test scenarios — testing how components connect and communicate"],
-    "unit": ["2-3 specific unit test scenarios — testing individual functions or logic in isolation"],
-    "tool_stack": "Recommended tool stack for testing this specific system type — name 3-4 real tools with one line on why each fits here"
-  }
+    "e2e": ["write 2-3 specific E2E test scenarios for this exact system as plain strings in this array"],
+    "integration": ["write 2-3 specific integration test scenarios as plain strings in this array"],
+    "unit": ["write 2-3 specific unit test scenarios as plain strings in this array"],
+    "tool_stack": "Name 3-4 real testing tools suited for this system with one line each on why they fit"
+  },
+  "image_legend": [
+    "write each entry as: emoji + fantasy element name = what it represents in system design"
+  ]
 }`;
 
 
