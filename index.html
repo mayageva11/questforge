@@ -442,12 +442,31 @@ Return STRICTLY raw JSON, no markdown:
 }`;
 
 
+      // Free-tier model fallback chain — tries each until one works
+      const FREE_MODELS = [
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-flash-8b',
+        'gemini-1.5-flash',
+        'gemini-2.0-flash',
+      ];
+
       try {
-        // Generate quest text via Gemini 1.5 Flash (free tier)
-        const textData = await callGemini(apiKey, 'gemini-2.0-flash', {
-          contents: [{ parts: [{ text: textPrompt }] }],
-          generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
-        });
+        let textData = null;
+        let lastErr = null;
+        for (const model of FREE_MODELS) {
+          try {
+            textData = await callGemini(apiKey, model, {
+              contents: [{ parts: [{ text: textPrompt }] }],
+              generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
+            });
+            break; // success — stop trying
+          } catch (e) {
+            lastErr = e;
+            // only keep trying on rate-limit / not-found errors
+            if (!e.message.startsWith('RATE_LIMIT') && !e.message.includes('not found') && !e.message.includes('404')) throw e;
+          }
+        }
+        if (!textData) throw lastErr;
 
         // Parse text JSON
         let raw = textData.candidates[0].content.parts[0].text.trim()
