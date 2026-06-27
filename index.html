@@ -54,12 +54,12 @@
         <p class="screen-subtitle">Let's configure your Claude API key to start forging System Design quests.</p>
         
         <div class="api-form">
-          <label for="api-key">Anthropic API Key</label>
+          <label for="api-key">Google Gemini API Key</label>
           <div class="api-key-input-wrapper">
-            <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+            <input type="password" id="api-key" placeholder="AIza..." autocomplete="off" spellcheck="false">
             <button class="api-toggle-btn" id="api-toggle-btn" onclick="toggleKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
           </div>
-          <p class="key-note">🔒 Saved locally in your browser. Never sent to any other server.</p>
+          <p class="key-note">🔒 Free key at <strong>aistudio.google.com</strong> — no billing required. Saved locally, never sent elsewhere.</p>
           <button class="unlock-btn" onclick="saveApiKey()">Unlock QuestForge ✨</button>
         </div>
       </div>
@@ -112,7 +112,7 @@
             <span class="canvas-label">QUEST MAP // ARCHITECTURE SCHEMATIC</span>
           </div>
           <div class="canvas-frame" id="svg-frame">
-            <div id="svg-container"></div>
+            <img id="quest-image" class="quest-image" alt="Quest scene">
           </div>
         </div>
 
@@ -136,7 +136,7 @@
       <h3 class="screen-title" style="margin-bottom: 0.4rem;">⚙️ API Configuration</h3>
       <p class="screen-subtitle" style="margin-bottom: 1.25rem;">Modify or erase your saved Claude API key.</p>
       
-      <label for="modal-api-key">Anthropic API Key</label>
+      <label for="modal-api-key">Google Gemini API Key</label>
       <div class="api-key-input-wrapper">
         <input type="password" id="modal-api-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
         <button class="api-toggle-btn" id="modal-api-toggle-btn" onclick="toggleModalKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
@@ -221,8 +221,8 @@
     const titleEl = document.getElementById('quest-title');
     const storyEl = document.getElementById('story-text');
     const lessonEl = document.getElementById('lesson-text');
-    const svgFrame = document.getElementById('svg-frame');
-    const svgContainer = document.getElementById('svg-container');
+    const svgFrame     = document.getElementById('svg-frame');
+    const questImageEl = document.getElementById('quest-image');
     const copyBtn = document.getElementById('copy-btn');
     const newBtn = document.getElementById('new-btn');
     const questionEl = document.getElementById('question');
@@ -370,12 +370,28 @@
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) forgeQuest();
     });
 
+    async function callGemini(apiKey, model, body) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = err?.error?.message || `HTTP ${res.status}`;
+        if (res.status === 400) throw new Error(`BAD_REQUEST: ${msg}`);
+        if (res.status === 401 || res.status === 403) throw new Error(`INVALID_KEY: ${msg}`);
+        if (res.status === 429) throw new Error(`RATE_LIMIT: ${msg}`);
+        throw new Error(msg);
+      }
+      return res.json();
+    }
+
     async function forgeQuest() {
       const apiKey = localStorage.getItem('questforge_api_key') || apiKeyEl.value.trim();
       const question = questionEl.value.trim();
 
       if (!apiKey) {
-        showError('Enter your Claude API key in the configuration modal.');
+        showError('Enter your Google Gemini API key. Get one free at aistudio.google.com.');
         openSettingsModal();
         return;
       }
@@ -384,12 +400,10 @@
         return;
       }
 
-      // Transition to loading screen
       errorEl.classList.add('hidden');
       showScreen('screen-loading');
       forgeBtn.disabled = true;
 
-      // Cycle flavor texts
       let flavorIdx = 0;
       flavorEl.textContent = FLAVORS[0];
       flavorInterval = setInterval(() => {
@@ -397,112 +411,93 @@
         flavorEl.textContent = FLAVORS[flavorIdx];
       }, 1500);
 
-      const prompt = `You are a Principal Software Architect and a Retro Fantasy Game Designer.
+      const textPrompt = `You are a Principal Software Architect and a Retro Fantasy Game Designer.
 I am a Software Engineer studying System Design for high-scale applications.
-Your job is to translate a System Design or Distributed Systems challenge into a fun, visual retro RPG/Fantasy game quest that teaches real system architecture.
+Translate this System Design challenge into a fun retro RPG/Fantasy quest that also teaches real architecture.
 
-Map system design concepts to fantasy elements like this:
-- Load Balancer = The Gatekeeper / Toll Bridge Guardian
-- Database (SQL) = The Royal Scroll Vaults (ACID-sealed)
-- NoSQL Database = The Wildwood Rune-Stone Archive (Eventually consistent)
-- Cache (Redis/Memcached) = The Instant Recall Scroll / Pouch of Holding
-- Message Queue / Event Streaming (Kafka) = The Raven Courier Guild / Whispering Winds
-- Microservice / Worker = Independent Mage Guilds / Summoned Golems
-- Rate Limiter = The Hourglass Sentry / Mana Regulator
-- CDN = Local Magic Mirrors / Distributed Outposts
-- WebSockets / Real-time connection = Telepathic Tether
-- Sharding / Partitioning = Divided Fiefdoms / Realm Fractures
-- Replication / Failover = Mirror Decoys / Phoenix Resurrection Runes
-- DNS = The Grand Registry of Coordinates
-- Service Discovery = The Pathfinder Guild
-- Consensus Protocol (Raft/Paxos) = The Druidic Council Voting Circle
+Map concepts to fantasy like this:
+- Load Balancer = Gatekeeper / Toll Bridge Guardian
+- SQL Database = Royal Scroll Vaults (ACID-sealed)
+- NoSQL Database = Wildwood Rune-Stone Archive (Eventually consistent)
+- Cache = Instant Recall Scroll / Pouch of Holding
+- Message Queue / Kafka = Raven Courier Guild
+- Microservice = Summoned Golem / Mage Guild
+- Rate Limiter = Hourglass Sentry
+- CDN = Local Magic Mirrors
+- WebSockets = Telepathic Tether
+- Sharding = Divided Fiefdoms
+- Replication = Phoenix Resurrection Runes
+- Service Discovery = Pathfinder Guild
 
-Analyze this system design challenge: "${question}"
+Challenge: "${question}"
 
-The story must hint at the REAL architectural decision, bottlenecks, or tradeoffs (like latency vs. consistency, write-heavy vs. read-heavy, polling vs. push, etc.) — so the reader actually learns something.
+The story must hint at real architectural tradeoffs (latency vs consistency, polling vs push, etc.) so the reader actually learns.
 
-You must return your response STRICTLY in the following JSON format (no markdown wrappers, no backticks, raw JSON only):
+Return STRICTLY raw JSON, no markdown:
 {
-  "title": "A short, catchy game-style quest title",
-  "story": "A 3-4 sentence fantasy narrative that maps the system design components to fantasy elements AND subtly teaches the real architectural insight. End with a hint about the key tradeoff or decision to make.",
-  "lesson": "One sentence — the real architectural takeaway or tradeoff, written plainly (e.g. 'Trade strong database consistency for high availability using write-ahead logging and replication.')",
-  "svg_code": "A valid self-contained SVG (starting with <svg>, ending with </svg>) in pixel-art retro game style. Visually represent the system design architecture scene. Use dark colors (#0f0c1b, #191432), beautiful pastel neon accents (#f472b6, #a78bfa, #38bdf8), geometric shapes, and include labeled fantasy character or element names inside the SVG. Must have viewBox, width='100%', height='auto'."
+  "title": "Short catchy game-style quest title",
+  "story": "3-4 sentence fantasy narrative mapping components to fantasy elements, teaching the real architectural insight. End with the key tradeoff.",
+  "lesson": "One plain sentence — the real architectural takeaway."
 }`;
 
+      const imagePrompt = `A vibrant retro RPG pixel-art cartoon illustration for a system design quest about: "${question}".
+Scene: A fantasy world where software architecture components are depicted as magical creatures and structures. Show wizards, iron golems, magical scrolls, crystal balls, raven messengers, glowing portals, ancient vaults.
+Style: Colorful 16-bit pixel-art video game screenshot. Dark deep-purple background (#0f0c1b). Neon glow accents in pink, violet and cyan. Cute expressive pixel sprite characters. Wide cinematic landscape composition. Detailed and rich scene. No text labels needed.`;
+
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-            'anthropic-dangerous-direct-browser-access': 'true'
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 2048,
-            messages: [{ role: 'user', content: prompt }]
+        // Run text + image generation in parallel
+        const [textData, imgData] = await Promise.all([
+          callGemini(apiKey, 'gemini-2.0-flash', {
+            contents: [{ parts: [{ text: textPrompt }] }],
+            generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
+          }),
+          callGemini(apiKey, 'gemini-2.0-flash-preview-image-generation', {
+            contents: [{ parts: [{ text: imagePrompt }] }],
+            generationConfig: { responseModalities: ['IMAGE'] }
           })
-        });
+        ]);
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          const msg = err?.error?.message || `HTTP ${response.status}`;
-          const status = response.status;
-          if (status === 401) throw new Error(`INVALID_KEY: ${msg}`);
-          if (status === 403) throw new Error(`FORBIDDEN: ${msg}`);
-          if (status === 429) throw new Error(`RATE_LIMIT: ${msg}`);
-          if (status === 529 || status === 503) throw new Error(`OVERLOADED: ${msg}`);
-          throw new Error(msg);
-        }
-
-        const data = await response.json();
-        let raw = data.content[0].text.trim()
-          .replace(/^```(?:json)?\n?/, '')
-          .replace(/\n?```$/, '');
-
+        // Parse text JSON
+        let raw = textData.candidates[0].content.parts[0].text.trim()
+          .replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
         const result = JSON.parse(raw);
         lastResult = result;
 
-        // Render Results
         titleEl.textContent = result.title;
         storyEl.textContent = result.story;
         lessonEl.textContent = result.lesson;
 
-        svgContainer.innerHTML = result.svg_code;
-        
-        // Setup responsive SVG
-        const svg = svgContainer.querySelector('svg');
-        if (svg) {
-          svg.setAttribute('width', '100%');
-          if (!svg.getAttribute('height')) svg.setAttribute('height', 'auto');
+        // Render generated image
+        const imagePart = imgData.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+        if (imagePart) {
+          const { data, mimeType } = imagePart.inlineData;
+          questImageEl.src = `data:${mimeType};base64,${data}`;
+          questImageEl.style.display = 'block';
+        } else {
+          questImageEl.style.display = 'none';
         }
 
-        // Trigger glow pulse animation on canvas
         svgFrame.classList.remove('glow-pulse');
         void svgFrame.offsetWidth;
         svgFrame.classList.add('glow-pulse');
 
-        // Transition to results screen
         showScreen('screen-results');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
       } catch (err) {
         const msg = err.message || '';
         let errorUserMsg = '';
-        if (msg.startsWith('INVALID_KEY') || msg.includes('invalid x-api-key') || msg.includes('authentication'))
-          errorUserMsg = 'Invalid API key. Check settings and key permissions.';
+        if (msg.startsWith('INVALID_KEY') || msg.includes('API key'))
+          errorUserMsg = 'Invalid API key. Get a free key at aistudio.google.com → Get API Key.';
         else if (msg.startsWith('RATE_LIMIT'))
-          errorUserMsg = 'Claude API is busy. Wait a moment, then try again.';
-        else if (msg.startsWith('OVERLOADED'))
-          errorUserMsg = 'Claude is overloaded right now. Retry shortly.';
-        else if (msg.startsWith('FORBIDDEN') || msg.includes('credit'))
-          errorUserMsg = 'Billing limit reached. Top up billing credits at console.anthropic.com.';
-        else if (err.name === 'TypeError' || msg.includes('fetch') || msg.includes('network') || msg.includes('Failed'))
-          errorUserMsg = 'Network issue — cannot reach Claude. Please check internet connection.';
+          errorUserMsg = 'Rate limit hit. Wait a moment and try again.';
+        else if (msg.startsWith('BAD_REQUEST'))
+          errorUserMsg = `Request error: ${msg.replace('BAD_REQUEST: ', '')}`;
+        else if (err.name === 'TypeError' || msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('failed'))
+          errorUserMsg = 'Network error — cannot reach Google API. Check your connection.';
         else
           errorUserMsg = `Error: ${msg}`;
-        
+
         showError(errorUserMsg);
         console.error(err);
       } finally {
