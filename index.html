@@ -51,15 +51,15 @@
       <!-- SCREEN 1: API Configuration Welcomer -->
       <div id="screen-api" class="screen hidden">
         <h2 class="screen-title">🔮 Welcome to QuestForge</h2>
-        <p class="screen-subtitle">Let's configure your Claude API key to start forging System Design quests.</p>
+        <p class="screen-subtitle">Let's configure your Groq API key to start forging System Design quests.</p>
         
         <div class="api-form">
-          <label for="api-key">Google Gemini API Key</label>
+          <label for="api-key">Groq API Key</label>
           <div class="api-key-input-wrapper">
-            <input type="password" id="api-key" placeholder="AIza..." autocomplete="off" spellcheck="false">
+            <input type="password" id="api-key" placeholder="gsk_..." autocomplete="off" spellcheck="false">
             <button class="api-toggle-btn" id="api-toggle-btn" onclick="toggleKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
           </div>
-          <p class="key-note">🔒 Free key at <strong>aistudio.google.com</strong> — no billing required. Saved locally, never sent elsewhere.</p>
+          <p class="key-note">🔒 Free key at <strong>console.groq.com</strong> — no credit card, 14,400 requests/day. Saved locally, never sent elsewhere.</p>
           <button class="unlock-btn" onclick="saveApiKey()">Unlock QuestForge ✨</button>
         </div>
       </div>
@@ -134,11 +134,11 @@
   <div class="settings-modal" id="settings-modal" style="display:none">
     <div class="settings-modal-card">
       <h3 class="screen-title" style="margin-bottom: 0.4rem;">⚙️ API Configuration</h3>
-      <p class="screen-subtitle" style="margin-bottom: 1.25rem;">Modify or erase your saved Claude API key.</p>
-      
-      <label for="modal-api-key">Google Gemini API Key</label>
+      <p class="screen-subtitle" style="margin-bottom: 1.25rem;">Modify or erase your saved Groq API key.</p>
+
+      <label for="modal-api-key">Groq API Key</label>
       <div class="api-key-input-wrapper">
-        <input type="password" id="modal-api-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+        <input type="password" id="modal-api-key" placeholder="gsk_..." autocomplete="off" spellcheck="false">
         <button class="api-toggle-btn" id="modal-api-toggle-btn" onclick="toggleModalKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
       </div>
       
@@ -295,7 +295,7 @@
     function saveApiKey() {
       const key = apiKeyEl.value.trim();
       if (!key) {
-        alert('Please enter a valid Claude API key.');
+        alert('Please enter a valid Groq API key (starts with gsk_).');
         return;
       }
       localStorage.setItem('questforge_api_key', key);
@@ -307,7 +307,7 @@
     function saveModalApiKey() {
       const key = modalApiKeyEl.value.trim();
       if (!key) {
-        alert('Please enter a valid Claude API key.');
+        alert('Please enter a valid Groq API key (starts with gsk_).');
         return;
       }
       localStorage.setItem('questforge_api_key', key);
@@ -370,17 +370,27 @@
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) forgeQuest();
     });
 
-    async function callGemini(apiKey, model, body) {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-      );
+    async function callGroq(apiKey, model, prompt) {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.85,
+          max_tokens: 1024,
+          response_format: { type: 'json_object' }
+        })
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const msg = err?.error?.message || `HTTP ${res.status}`;
-        if (res.status === 400) throw new Error(`BAD_REQUEST: ${msg}`);
-        if (res.status === 401 || res.status === 403) throw new Error(`INVALID_KEY: ${msg}`);
+        if (res.status === 401) throw new Error(`INVALID_KEY: ${msg}`);
         if (res.status === 429) throw new Error(`RATE_LIMIT: ${msg}`);
+        if (res.status === 400) throw new Error(`BAD_REQUEST: ${msg}`);
         throw new Error(msg);
       }
       return res.json();
@@ -391,7 +401,7 @@
       const question = questionEl.value.trim();
 
       if (!apiKey) {
-        showError('Enter your Google Gemini API key. Get one free at aistudio.google.com.');
+        showError('Enter your Groq API key. Get one free at console.groq.com — takes 30 seconds, no credit card.');
         openSettingsModal();
         return;
       }
@@ -442,34 +452,24 @@ Return STRICTLY raw JSON, no markdown:
 }`;
 
 
-      // Free-tier model fallback chain — tries each until one works
-      const FREE_MODELS = [
-        'gemini-2.0-flash-lite',
-        'gemini-1.5-flash-8b',
-        'gemini-1.5-flash',
-        'gemini-2.0-flash',
-      ];
+      // Groq free-tier model fallback chain
+      const GROQ_MODELS = ['llama-3.1-8b-instant', 'gemma2-9b-it', 'llama3-8b-8192'];
 
       try {
         let textData = null;
         let lastErr = null;
-        for (const model of FREE_MODELS) {
+        for (const model of GROQ_MODELS) {
           try {
-            textData = await callGemini(apiKey, model, {
-              contents: [{ parts: [{ text: textPrompt }] }],
-              generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
-            });
-            break; // success — stop trying
+            textData = await callGroq(apiKey, model, textPrompt);
+            break;
           } catch (e) {
             lastErr = e;
-            // only keep trying on rate-limit / not-found errors
-            if (!e.message.startsWith('RATE_LIMIT') && !e.message.includes('not found') && !e.message.includes('404')) throw e;
+            if (!e.message.startsWith('RATE_LIMIT') && !e.message.includes('not found')) throw e;
           }
         }
         if (!textData) throw lastErr;
 
-        // Parse text JSON
-        let raw = textData.candidates[0].content.parts[0].text.trim()
+        let raw = textData.choices[0].message.content.trim()
           .replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
         const result = JSON.parse(raw);
         lastResult = result;
@@ -506,14 +506,14 @@ Return STRICTLY raw JSON, no markdown:
       } catch (err) {
         const msg = err.message || '';
         let errorUserMsg = '';
-        if (msg.startsWith('INVALID_KEY') || msg.includes('API key'))
-          errorUserMsg = 'Invalid API key. Get a free key at aistudio.google.com → Get API Key.';
+        if (msg.startsWith('INVALID_KEY') || msg.includes('API key') || msg.includes('401'))
+          errorUserMsg = 'Invalid API key. Get a free Groq key at console.groq.com — no credit card needed.';
         else if (msg.startsWith('RATE_LIMIT'))
-          errorUserMsg = 'Rate limit hit. Wait a moment and try again.';
+          errorUserMsg = 'Rate limit hit. Wait a moment and try again (Groq free tier: 14,400 req/day).';
         else if (msg.startsWith('BAD_REQUEST'))
           errorUserMsg = `Request error: ${msg.replace('BAD_REQUEST: ', '')}`;
         else if (err.name === 'TypeError' || msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('failed'))
-          errorUserMsg = 'Network error — cannot reach Google API. Check your connection.';
+          errorUserMsg = 'Network error — cannot reach Groq API. Check your connection.';
         else
           errorUserMsg = `Error: ${msg}`;
 

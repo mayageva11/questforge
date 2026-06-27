@@ -4,7 +4,7 @@
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
-![Gemini API](https://img.shields.io/badge/Google_Gemini-1.5_Flash-4285F4?style=flat&logo=google&logoColor=white)
+![Groq API](https://img.shields.io/badge/Groq-Llama_3.1-FF6B35?style=flat&logo=groq&logoColor=white)
 ![Pollinations.ai](https://img.shields.io/badge/Pollinations.ai-Free_AI_Images-blueviolet?style=flat)
 ![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-Live-brightgreen?style=flat&logo=github)
 ![Mobile Friendly](https://img.shields.io/badge/Responsive-Mobile_%7C_Tablet_%7C_Desktop-success?style=flat)
@@ -67,24 +67,26 @@ The app generates something like:
 
 ## How the AI Works
 
-### Google Gemini 1.5 Flash — Text Generation
+### Groq + Llama 3.1 — Text Generation
 
-QuestForge uses the **Google Gemini 1.5 Flash** model for all quest narrative generation.
+QuestForge uses the **Groq API** with **Llama 3.1 8B Instant** for all quest narrative generation.
 
 ```
-GET/POST https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_KEY
+POST https://api.groq.com/openai/v1/chat/completions
+Authorization: Bearer YOUR_GROQ_KEY
 ```
 
-**Why Gemini?**
+**Why Groq?**
 
 | Reason | Detail |
 |--------|--------|
-| ✅ **Free tier** | 15 requests/min, 1,000,000 tokens/day — enough for real use |
-| ✅ **No billing required** | Anyone can get a Gemini key from [Google AI Studio](https://aistudio.google.com) in 2 minutes, no credit card |
-| ✅ **Fast** | Flash model is optimized for low latency — quests generate in ~2 seconds |
-| ✅ **JSON output** | Reliable structured output with a well-crafted prompt |
+| ✅ **Genuinely free** | 14,400 requests/day, no credit card, no billing — works everywhere |
+| ✅ **No region restrictions** | Available globally, unlike Google Gemini which blocks the free tier in many regions |
+| ✅ **Lightning fast** | Groq's custom LPU hardware — responses arrive in under 1 second |
+| ✅ **Reliable JSON output** | `response_format: json_object` forces clean structured JSON every time |
+| ✅ **OpenAI-compatible API** | Standard format, easy to understand and maintain |
 
-The prompt instructs Gemini to map system design concepts to fantasy metaphors:
+The prompt instructs Llama to map system design concepts to fantasy metaphors:
 
 ```
 Rate Limiter     → The Gatekeeper's Toll
@@ -97,7 +99,7 @@ CDN              → The Network of Mirror Portals
 Circuit Breaker  → The Failsafe Seal
 ```
 
-Gemini returns structured JSON with `title`, `story`, and `lesson` — parsed directly in the browser.
+The model returns structured JSON with `title`, `story`, `lesson`, and `image_scene` — parsed directly in the browser. If the primary model hits a rate limit, the app automatically falls back to `gemma2-9b-it` and then `llama3-8b-8192`.
 
 ### Pollinations.ai — Pixel-Art Image Generation
 
@@ -113,21 +115,21 @@ The prompt is built from the Gemini quest output, requesting a **16-bit pixel-ar
 
 ---
 
-## The Journey: Claude → Gemini
+## The Journey: Claude → Gemini → Groq
 
-QuestForge **started with the Anthropic Claude API** (`claude-sonnet-4-6`). Claude was the original choice because of its strong narrative reasoning and structured JSON output.
-
-**Why the switch to Gemini?**
-
-Claude's API requires a paid credit balance — there's no free tier for browser-based calls. After the initial balance ran out, the app returned:
-
+QuestForge **started with the Anthropic Claude API** (`claude-sonnet-4-6`) for its strong narrative reasoning. When the credit balance ran out it returned:
 ```
 Error 400: Your credit balance is too low to access the Claude API.
 ```
 
-Gemini 1.5 Flash has a genuine, unlimited free tier — 15 RPM and 1M tokens/day — with no credit card required. For a portfolio project you want *anyone* to try, Gemini is the right call.
+Switched to **Google Gemini** (free tier), but hit a second wall — Gemini's free tier quota is `limit: 0` for many API keys depending on your Google Cloud region and project settings, making it unreliable for a public project anyone can use:
+```
+Error 429: Quota exceeded — limit: 0, model: gemini-2.0-flash
+```
 
-The architecture stayed identical — both APIs accept a prompt and return text. Only the endpoint, headers, and key format changed.
+Switched to **Groq** — genuinely free (14,400 req/day), no region restrictions, no credit card, and actually faster than both. For a portfolio project you want *anyone* to try without setup friction, Groq is the right call.
+
+Each migration was a one-file change — the architecture is identical: send a prompt, get JSON back.
 
 ---
 
@@ -194,7 +196,7 @@ Claude Code acted as a **GitHub automation layer** — what some call "GitHub MC
 |-------|------------|
 | Frontend | Vanilla HTML5 + CSS3 + JavaScript (ES2022) |
 | Fonts | Plus Jakarta Sans · Outfit · JetBrains Mono (Google Fonts) |
-| AI — Text | Google Gemini 1.5 Flash (free tier) |
+| AI — Text | Groq API / Llama 3.1 8B Instant (free tier, 14,400 req/day) |
 | AI — Images | Pollinations.ai / Flux model (free, no key) |
 | Animations | CSS View Transitions API + fallback |
 | Storage | `localStorage` (API key only, never leaves your browser) |
@@ -215,11 +217,11 @@ open index.html   # macOS
 ```
 
 Then:
-1. Get a **free** Gemini API key at [aistudio.google.com](https://aistudio.google.com) (takes ~2 min, no credit card)
+1. Get a **free** Groq API key at [console.groq.com](https://console.groq.com) (takes ~30 sec, no credit card, no billing)
 2. Click the ⚙️ gear icon → paste your key → Save
 3. Pick a challenge and hit **Forge Quest ⚔️**
 
-Your API key is stored only in your browser's `localStorage`. It never touches any server.
+Your API key is stored only in your browser's `localStorage`. It goes directly from your browser to Groq — never touches any other server.
 
 ---
 
