@@ -48,4 +48,4 @@ While preparing for Senior QA Automation Engineer interviews, I kept hitting the
 Fork → Settings → Pages → Deploy from main → done.
 
 ---
-*Built by Maya Geva during the great job hunt of 2025*
+*Built by Maya Erusalimsky during the great job hunt of 2025*
