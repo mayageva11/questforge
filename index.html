@@ -438,7 +438,7 @@ Return STRICTLY raw JSON, no markdown:
   "title": "Short catchy game-style quest title",
   "story": "3-4 sentence fantasy narrative mapping components to fantasy elements, teaching the real architectural insight. End with the key tradeoff.",
   "lesson": "One plain sentence — the real architectural takeaway.",
-  "image_scene": "A single concise sentence describing a SPECIFIC pixel-art RPG scene for this quest — name the exact fantasy characters and setting elements that appear (e.g. 'A troll gatekeeper holds a giant hourglass at an iron gate while raven messengers circle overhead and glowing scroll vaults line the walls'). This must visually match the quest title and story."
+  "image_scene": "Describe a SPECIFIC cartoon scene where cute fantasy characters ARE the system design components doing their jobs. Name each character and what visible action they are performing (e.g. 'A fat cheerful troll in armor stands at a gate stamping DENY on tiny raven letters, while a glowing hourglass above him counts down; rows of golden token buckets line the walls behind him, each one slowly filling with sparkles'). The scene must make the system design concept obvious just by looking at it — no prior knowledge needed."
 }`;
 
 
@@ -463,9 +463,10 @@ Return STRICTLY raw JSON, no markdown:
         // Use the AI-generated image_scene for a quest-specific illustration
         const sceneDesc = result.image_scene || result.title;
         const pollPrompt = encodeURIComponent(
-          `16-bit pixel-art RPG game screenshot: ${sceneDesc}. ` +
-          `Style: colorful retro pixel-art, dark deep-purple and black background, ` +
-          `neon pink magenta cyan glow effects, detailed fantasy sprite characters, wide cinematic landscape, no text.`
+          `Bright colorful cartoon illustration: ${sceneDesc}. ` +
+          `Style: cute chibi fantasy characters, flat design, vibrant colors, playful storybook art, ` +
+          `characters large and clearly visible in the foreground doing specific actions, ` +
+          `clean simple background, no text labels, fun and friendly.`
         );
         const pollUrl = `https://image.pollinations.ai/prompt/${pollPrompt}?width=832&height=448&model=flux&nologo=true&seed=${Date.now()}`;
 

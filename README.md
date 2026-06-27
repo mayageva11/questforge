@@ -15,14 +15,15 @@
 
 ![QuestForge Demo — Rate Limiter quest scene](assets/demo-quest.png)
 
-> **Quest:** "Design a Rate Limiter for a Public API"
+> **Quest: "Design a Rate Limiter for a Public API"**
 >
-> The iron gate with barred entry = the **rate limiter** that blocks excess traffic.
-> The glowing golden boxes on the walls = **token buckets** (tokens refill over time; requests consume them).
-> Ravens circling overhead = incoming **API requests** queuing to pass through.
-> The neon purple barrier at the gate = **429 Too Many Requests** — the gatekeeper holds the line.
+> 🧌 **The troll** = the rate limiter — he decides who gets through
+> 🪣 **Golden buckets at his feet** = token buckets — tokens refill over time, each request spends one
+> ⏳ **The hourglass in the sky** = the time window — when it resets, tokens refill
+> 🐦‍⬛ **The queue of ravens** = incoming API requests waiting their turn
+> 🚫 **Envelopes flying away** = rejected requests — 429 Too Many Requests
 >
-> *Every quest generates a unique image like this — tailored to the specific system design challenge you chose.*
+> *Each quest generates a unique cartoon scene like this, tailored to the system design concept you chose.*
 
 ---
 
