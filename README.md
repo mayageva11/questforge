@@ -45,11 +45,11 @@ Every quest teaches something real about distributed systems — but feels like 
 
 ## Why I Built This
 
-While preparing for **Senior System Design interviews**, I kept hitting the same wall: design questions felt abstract and hard to visualize. Reading docs didn't make concepts stick.
+While preparing for **System Design interviews**, I kept hitting the same wall: design questions felt abstract and hard to visualize. Reading docs didn't make concepts stick.
 
 So I built QuestForge. Instead of grinding another article, I translate every challenge into a Pixar-quality animated quest — because learning sticks better when it doesn't feel like studying.
 
-**Built by Maya Erusalimsky during the great job hunt of 2025–2026. Shipped because why not.**
+**Built by Maya Erusalimsky during the great job hunt of 2026. Shipped because why not.**
 
 ---
 
