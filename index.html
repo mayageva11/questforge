@@ -440,22 +440,13 @@ Return STRICTLY raw JSON, no markdown:
   "lesson": "One plain sentence — the real architectural takeaway."
 }`;
 
-      const imagePrompt = `A vibrant retro RPG pixel-art cartoon illustration for a system design quest about: "${question}".
-Scene: A fantasy world where software architecture components are depicted as magical creatures and structures. Show wizards, iron golems, magical scrolls, crystal balls, raven messengers, glowing portals, ancient vaults.
-Style: Colorful 16-bit pixel-art video game screenshot. Dark deep-purple background (#0f0c1b). Neon glow accents in pink, violet and cyan. Cute expressive pixel sprite characters. Wide cinematic landscape composition. Detailed and rich scene. No text labels needed.`;
 
       try {
-        // Run text + image generation in parallel; image is best-effort
-        const [textData, imgResult] = await Promise.all([
-          callGemini(apiKey, 'gemini-2.0-flash', {
-            contents: [{ parts: [{ text: textPrompt }] }],
-            generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
-          }),
-          callGemini(apiKey, 'gemini-2.0-flash-exp-image-generation', {
-            contents: [{ parts: [{ text: imagePrompt }] }],
-            generationConfig: { responseModalities: ['IMAGE'] }
-          }).catch(e => { console.warn('Image generation failed:', e.message); return null; })
-        ]);
+        // Generate quest text via Gemini 1.5 Flash (free tier)
+        const textData = await callGemini(apiKey, 'gemini-1.5-flash', {
+          contents: [{ parts: [{ text: textPrompt }] }],
+          generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
+        });
 
         // Parse text JSON
         let raw = textData.candidates[0].content.parts[0].text.trim()
@@ -467,16 +458,19 @@ Style: Colorful 16-bit pixel-art video game screenshot. Dark deep-purple backgro
         storyEl.textContent = result.story;
         lessonEl.textContent = result.lesson;
 
-        // Render generated image (graceful fallback if unavailable)
-        const imagePart = imgResult?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-        if (imagePart) {
-          const { data, mimeType } = imagePart.inlineData;
-          questImageEl.src = `data:${mimeType};base64,${data}`;
-          questImageEl.style.display = 'block';
-          document.querySelector('.svg-canvas-container').style.display = '';
-        } else {
-          document.querySelector('.svg-canvas-container').style.display = 'none';
-        }
+        // Generate image via Pollinations.ai (free, no API key needed)
+        const pollPrompt = encodeURIComponent(
+          `Retro RPG pixel-art cartoon game scene: ${result.title}. ${result.story} ` +
+          `Style: colorful 16-bit pixel-art video game screenshot, dark deep-purple background, ` +
+          `neon pink violet cyan glow effects, cute fantasy sprite characters, cinematic wide landscape.`
+        );
+        const pollUrl = `https://image.pollinations.ai/prompt/${pollPrompt}?width=832&height=448&model=flux&nologo=true&seed=${Date.now()}`;
+
+        document.querySelector('.svg-canvas-container').style.display = '';
+        questImageEl.classList.remove('loaded');
+        questImageEl.style.display = 'block';
+        questImageEl.onload = () => questImageEl.classList.add('loaded');
+        questImageEl.src = pollUrl;
 
         svgFrame.classList.remove('glow-pulse');
         void svgFrame.offsetWidth;
