@@ -482,10 +482,11 @@ Return STRICTLY raw JSON, no markdown:
         // Use the AI-generated image_scene for a quest-specific illustration
         const sceneDesc = result.image_scene || result.title;
         const pollPrompt = encodeURIComponent(
-          `Bright colorful cartoon illustration: ${sceneDesc}. ` +
-          `Style: cute chibi fantasy characters, flat design, vibrant colors, playful storybook art, ` +
-          `characters large and clearly visible in the foreground doing specific actions, ` +
-          `clean simple background, no text labels, fun and friendly.`
+          `Pixar and Disney 3D animation style: ${sceneDesc}. ` +
+          `Style: cinematic Pixar render, expressive adorable characters with big eyes and soft rounded shapes, ` +
+          `warm vibrant colors, beautiful soft lighting, rich detailed backgrounds, ` +
+          `characters large in foreground doing clear visible actions, magical glowing effects, ` +
+          `high quality 3D animation still, no text.`
         );
         const pollUrl = `https://image.pollinations.ai/prompt/${pollPrompt}?width=832&height=448&model=flux&nologo=true&seed=${Date.now()}`;
 
