@@ -114,7 +114,7 @@ body::before {
 /* ── App Centered Layout ────────────────────────────────── */
 .app-container {
   width: 100%;
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 3rem 1.5rem 5rem;
   position: relative;
@@ -145,12 +145,13 @@ header {
   margin-bottom: 0.75rem;
   letter-spacing: 0.16em;
   box-shadow: 0 0 15px rgba(244, 114, 182, 0.15);
+  white-space: nowrap;
 }
 
 h1 {
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
-  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  font-size: clamp(2rem, 7vw, 3.4rem);
   background: linear-gradient(135deg, #ffffff 15%, var(--accent-lavender) 55%, var(--accent-pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -159,11 +160,12 @@ h1 {
 }
 
 .tagline {
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
   color: var(--text-secondary);
   font-weight: 400;
-  max-width: 550px;
+  max-width: 520px;
   margin: 0 auto;
+  line-height: 1.65;
 }
 
 /* ── Centered App Card (Ultra Bubbly Glass) ─────────────── */
@@ -179,13 +181,6 @@ h1 {
   position: relative;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   /* view-transition-name removed: causes Safari rendering glitch */
-}
-
-@media (max-width: 500px) {
-  .app-card {
-    padding: 1.5rem;
-    border-radius: 24px;
-  }
 }
 
 .app-card:hover {
@@ -355,11 +350,7 @@ input::placeholder {
   margin-bottom: 1.5rem;
 }
 
-@media (max-width: 580px) {
-  .challenges-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* challenges-grid responsive handled in the main breakpoints block below */
 
 .challenge-card {
   background: rgba(255, 255, 255, 0.02);
@@ -855,5 +846,192 @@ footer {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   Desktop  > 860px  (default styles above)
+   Tablet   640–860px
+   Mobile   < 640px
+   ════════════════════════════════════════════════════════ */
+
+/* ── Desktop: 3-column challenge grid ──────────────────── */
+@media (min-width: 860px) {
+  .challenges-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .app-container {
+    padding: 4rem 2rem 6rem;
+  }
+}
+
+/* ── Tablet (640px – 860px) ─────────────────────────────── */
+@media (max-width: 860px) and (min-width: 640px) {
+  .challenges-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .app-container {
+    padding: 2.5rem 1.5rem 5rem;
+  }
+  .app-card {
+    padding: 2rem;
+    border-radius: 24px;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+  }
+}
+
+/* ── Mobile (< 640px) ───────────────────────────────────── */
+@media (max-width: 639px) {
+  .app-container {
+    padding: 1.75rem 1rem 4rem;
+  }
+
+  header {
+    margin-bottom: 1.5rem;
+  }
+
+  .header-badge {
+    font-size: 0.6rem;
+    padding: 0.35rem 0.9rem;
+    letter-spacing: 0.1em;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 9vw, 2.4rem);
+    margin-bottom: 0.4rem;
+  }
+
+  .tagline {
+    font-size: 0.88rem;
+    padding: 0 0.25rem;
+  }
+
+  .app-card {
+    padding: 1.4rem 1.2rem;
+    border-radius: 20px;
+  }
+
+  .screen-title {
+    font-size: 1.1rem;
+  }
+
+  .screen-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* API form tighter */
+  .api-form {
+    gap: 1rem;
+  }
+
+  input[type="password"],
+  input[type="text"],
+  textarea {
+    font-size: 0.95rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+  }
+
+  .unlock-btn,
+  .forge-btn {
+    font-size: 0.95rem;
+    padding: 1rem;
+    border-radius: 14px;
+    min-height: 52px; /* comfortable touch target */
+  }
+
+  /* Challenge grid: 1-column on phone */
+  .challenges-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .challenge-card {
+    padding: 1rem;
+    border-radius: 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .challenge-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .challenge-title {
+    font-size: 0.9rem;
+  }
+
+  .challenge-desc {
+    font-size: 0.74rem;
+  }
+
+  /* Results */
+  .quest-title {
+    font-size: 1.2rem;
+  }
+
+  .story-text {
+    font-size: 0.9rem;
+  }
+
+  .lesson-box {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  /* Action buttons stack on mobile */
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    min-width: unset;
+    width: 100%;
+    min-height: 50px;
+    font-size: 0.88rem;
+    border-radius: 14px;
+  }
+
+  /* Settings modal full-width on mobile */
+  .settings-modal {
+    padding: 1rem;
+    align-items: flex-end;
+  }
+
+  .settings-modal-card {
+    border-radius: 20px 20px 16px 16px;
+    padding: 1.75rem 1.5rem;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  footer {
+    font-size: 0.75rem;
+    padding: 1.5rem 1rem 2.5rem;
+  }
+}
+
+/* ── Very small phones (< 380px) ───────────────────────── */
+@media (max-width: 380px) {
+  .header-badge {
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    padding: 0.3rem 0.7rem;
+  }
+
+  h1 {
+    font-size: 1.65rem;
+  }
+
+  .app-card {
+    padding: 1.2rem 1rem;
   }
 }
