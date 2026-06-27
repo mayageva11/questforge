@@ -437,13 +437,14 @@ Return STRICTLY raw JSON, no markdown:
 {
   "title": "Short catchy game-style quest title",
   "story": "3-4 sentence fantasy narrative mapping components to fantasy elements, teaching the real architectural insight. End with the key tradeoff.",
-  "lesson": "One plain sentence — the real architectural takeaway."
+  "lesson": "One plain sentence — the real architectural takeaway.",
+  "image_scene": "A single concise sentence describing a SPECIFIC pixel-art RPG scene for this quest — name the exact fantasy characters and setting elements that appear (e.g. 'A troll gatekeeper holds a giant hourglass at an iron gate while raven messengers circle overhead and glowing scroll vaults line the walls'). This must visually match the quest title and story."
 }`;
 
 
       try {
         // Generate quest text via Gemini 1.5 Flash (free tier)
-        const textData = await callGemini(apiKey, 'gemini-1.5-flash', {
+        const textData = await callGemini(apiKey, 'gemini-2.0-flash', {
           contents: [{ parts: [{ text: textPrompt }] }],
           generationConfig: { temperature: 0.85, maxOutputTokens: 1024 }
         });
@@ -459,10 +460,12 @@ Return STRICTLY raw JSON, no markdown:
         lessonEl.textContent = result.lesson;
 
         // Generate image via Pollinations.ai (free, no API key needed)
+        // Use the AI-generated image_scene for a quest-specific illustration
+        const sceneDesc = result.image_scene || result.title;
         const pollPrompt = encodeURIComponent(
-          `Retro RPG pixel-art cartoon game scene: ${result.title}. ${result.story} ` +
-          `Style: colorful 16-bit pixel-art video game screenshot, dark deep-purple background, ` +
-          `neon pink violet cyan glow effects, cute fantasy sprite characters, cinematic wide landscape.`
+          `16-bit pixel-art RPG game screenshot: ${sceneDesc}. ` +
+          `Style: colorful retro pixel-art, dark deep-purple and black background, ` +
+          `neon pink magenta cyan glow effects, detailed fantasy sprite characters, wide cinematic landscape, no text.`
         );
         const pollUrl = `https://image.pollinations.ai/prompt/${pollPrompt}?width=832&height=448&model=flux&nologo=true&seed=${Date.now()}`;
 
