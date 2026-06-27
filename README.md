@@ -13,8 +13,16 @@
 
 ---
 
-![QuestForge Demo — AI-generated pixel-art quest scene](assets/demo-quest.png)
-*AI-generated pixel-art quest scene — created by Pollinations.ai inside the app*
+![QuestForge Demo — Rate Limiter quest scene](assets/demo-quest.png)
+
+> **Quest:** "Design a Rate Limiter for a Public API"
+>
+> The iron gate with barred entry = the **rate limiter** that blocks excess traffic.
+> The glowing golden boxes on the walls = **token buckets** (tokens refill over time; requests consume them).
+> Ravens circling overhead = incoming **API requests** queuing to pass through.
+> The neon purple barrier at the gate = **429 Too Many Requests** — the gatekeeper holds the line.
+>
+> *Every quest generates a unique image like this — tailored to the specific system design challenge you chose.*
 
 ---
 
