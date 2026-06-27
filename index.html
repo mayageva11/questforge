@@ -25,7 +25,8 @@
   <div class="glow-blob glow-blob-1"></div>
   <div class="glow-blob glow-blob-2"></div>
 
-  <div class="container">
+  <!-- Main Container -->
+  <div class="app-container">
     
     <!-- Header -->
     <header>
@@ -34,184 +35,171 @@
       <p class="tagline">Master distributed systems and high-scale software architecture through gamified fantasy quests.</p>
     </header>
 
-    <!-- Dashboard Grid Container -->
-    <div class="dashboard-grid">
+    <!-- Centered Glassmorphic App Card -->
+    <div class="app-card">
       
-      <!-- Left Column: Controls & Inputs -->
-      <div class="left-column">
+      <!-- Top Right Gear Icon (Settings) -->
+      <div class="card-header-actions hidden" id="card-actions">
+        <button class="settings-btn-icon" onclick="openSettingsModal()" title="API Configuration">⚙️</button>
+      </div>
+
+      <!-- ERROR ALERTS BOX -->
+      <div class="error-box hidden" id="error-box">
+        ❌ An error occurred. Please check your configurations.
+      </div>
+
+      <!-- SCREEN 1: API Configuration Welcomer -->
+      <div id="screen-api" class="screen hidden">
+        <h2 class="screen-title">🔮 Welcome to QuestForge</h2>
+        <p class="screen-subtitle">Let's configure your Claude API key to start forging System Design quests.</p>
         
-        <!-- API Configuration Collapsible Card -->
-        <div class="settings-section collapsed" id="settings-section">
-          <div class="settings-header" onclick="toggleSettings()">
-            <span>⚙️ Claude API Configuration</span>
-            <span class="settings-toggle-icon">▼</span>
+        <div class="api-form">
+          <label for="api-key">Anthropic API Key</label>
+          <div class="api-key-input-wrapper">
+            <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+            <button class="api-toggle-btn" id="api-toggle-btn" onclick="toggleKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
           </div>
-          <div class="settings-content">
-            <label for="api-key">Anthropic API Key</label>
-            <div class="api-key-wrapper">
-              <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
-              <button class="api-toggle-btn" id="api-toggle-btn" onclick="toggleKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
-            </div>
-            <p class="key-note">🔒 Saved securely in your browser's local storage and never sent elsewhere.</p>
-            <div class="settings-actions">
-              <button class="settings-btn settings-btn-save" onclick="saveApiKey()">Save Key</button>
-              <button class="settings-btn settings-btn-clear" onclick="clearApiKey()">Clear</button>
-            </div>
-          </div>
+          <p class="key-note">🔒 Saved locally in your browser. Never sent to any other server.</p>
+          <button class="unlock-btn" onclick="saveApiKey()">Unlock QuestForge ✨</button>
         </div>
+      </div>
 
-        <!-- Quick Quests Card -->
-        <div class="panel mb-1">
-          <div class="panel-title">QUICK CHALLENGES</div>
-          <p class="chips-label">⚡ SELECT A DISTRIBUTED SYSTEM CHALLENGE</p>
-          <div class="chips" id="chips"></div>
-        </div>
+      <!-- SCREEN 2: Challenge Selector (Toddler-Simple Grid) -->
+      <div id="screen-selector" class="screen hidden">
+        <h2 class="screen-title">🔮 Choose Your Challenge</h2>
+        <p class="screen-subtitle">Tap a distributed system challenge below, or type a custom query, then tap Forge Quest.</p>
+        
+        <!-- Large Interactive Challenge Grid -->
+        <div class="challenges-grid" id="challenges-grid"></div>
 
-        <!-- Challenge Formulation Card -->
-        <div class="panel">
-          <div class="panel-title">YOUR CHALLENGE</div>
-          <label for="question">System Architecture Prompt</label>
+        <div class="textarea-wrapper">
+          <label for="question" class="custom-prompt-label">Custom Challenge Prompt</label>
           <textarea
             id="question"
             rows="3"
-            placeholder="Or type a custom system design problem (e.g., Design a distributed key-value store)..."
+            placeholder="Or type your own system design challenge..."
             spellcheck="false"
           ></textarea>
-          <button class="forge-btn" id="forge-btn" onclick="forgeQuest()">FORGE QUEST 🔮</button>
         </div>
 
+        <button class="forge-btn" id="forge-btn" onclick="forgeQuest()">FORGE QUEST 🔮</button>
       </div>
 
-      <!-- Right Column: Canvas & Outputs -->
-      <div class="right-column">
+      <!-- SCREEN 3: Loading Chamber -->
+      <div id="screen-loading" class="screen loading hidden">
+        <div class="loader-orb"></div>
+        <p class="loading-flavor" id="loading-flavor">Consulting the Ancient Scrolls...</p>
+      </div>
+
+      <!-- SCREEN 4: Quest Showcase Results -->
+      <div id="screen-results" class="screen hidden">
+        <div class="results-header-divider">QUEST FORGED</div>
         
-        <!-- Onboarding Metaphor Guide (visible by default, hidden when loading/results show) -->
-        <div id="onboarding-view" class="panel onboarding-panel">
-          <h3>System Design Metaphor Map 🗺️</h3>
-          <p class="onboarding-subtitle">Your challenges are translated into fantasy worlds. Here is how distributed systems map to fantasy elements:</p>
-          <div class="metaphor-grid">
-            <div class="metaphor-item">
-              <span class="metaphor-icon">🛡️</span>
-              <div class="metaphor-text">
-                <strong>The Gatekeeper</strong>
-                <span>Load Balancer</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">📜</span>
-              <div class="metaphor-text">
-                <strong>ACID Scroll Vault</strong>
-                <span>SQL Database</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">💎</span>
-              <div class="metaphor-text">
-                <strong>Instant Recall Scroll</strong>
-                <span>Redis Cache</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">🐦</span>
-              <div class="metaphor-text">
-                <strong>Raven Courier Guild</strong>
-                <span>Message Queue (Kafka)</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">🧙</span>
-              <div class="metaphor-text">
-                <strong>Mage Guilds</strong>
-                <span>Microservices</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">⏳</span>
-              <div class="metaphor-text">
-                <strong>Hourglass Sentry</strong>
-                <span>Rate Limiter</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">🪞</span>
-              <div class="metaphor-text">
-                <strong>Magic Mirror Network</strong>
-                <span>CDN</span>
-              </div>
-            </div>
-            <div class="metaphor-item">
-              <span class="metaphor-icon">🔗</span>
-              <div class="metaphor-text">
-                <strong>Telepathic Tether</strong>
-                <span>WebSockets</span>
-              </div>
-            </div>
+        <h2 class="quest-title" id="quest-title"></h2>
+        <p class="story-text" id="story-text"></p>
+        
+        <div class="lesson-box">
+          <span class="lesson-label">💡 ARCHITECTURAL LESSON</span>
+          <span class="lesson-text" id="lesson-text"></span>
+        </div>
+
+        <!-- Visual Canvas -->
+        <div class="svg-canvas-container">
+          <div class="canvas-chrome">
+            <div class="canvas-dot"></div>
+            <div class="canvas-dot"></div>
+            <div class="canvas-dot"></div>
+            <span class="canvas-label">QUEST MAP // ARCHITECTURE SCHEMATIC</span>
+          </div>
+          <div class="canvas-frame" id="svg-frame">
+            <div id="svg-container"></div>
           </div>
         </div>
 
-        <!-- Loading (visible during generation) -->
-        <div class="loading hidden" id="loading">
-          <div class="loader-orb"></div>
-          <p class="loading-flavor" id="loading-flavor">Consulting the Ancient Scrolls...</p>
+        <!-- Actions -->
+        <div class="action-buttons">
+          <button class="action-btn btn-copy" id="copy-btn">📋 Copy LinkedIn Post</button>
+          <button class="action-btn btn-new" id="new-btn">🔄 Forge Another Quest</button>
         </div>
-
-        <!-- Error (visible on API failure) -->
-        <div class="error-box hidden" id="error-box">
-          ❌ The Druid council rejected your key. Please check your Anthropic configuration.
-        </div>
-
-        <!-- Results (visible after generation) -->
-        <div class="hidden" id="results">
-          <div class="results-divider">QUEST FORGED</div>
-
-          <!-- Narrative and Lessons Card -->
-          <div class="panel mb-1">
-            <h2 class="quest-title" id="quest-title"></h2>
-            <p class="story-text" id="story-text"></p>
-            <div class="lesson-box">
-              <span class="lesson-label">💡 ARCHITECTURAL LESSON</span>
-              <span class="lesson-text" id="lesson-text"></span>
-            </div>
-          </div>
-
-          <!-- Canvas SVG Frame -->
-          <div class="svg-monitor">
-            <div class="monitor-chrome">
-              <div class="monitor-dot"></div>
-              <div class="monitor-dot"></div>
-              <div class="monitor-dot"></div>
-              <span class="monitor-label">QUEST MAP // DISTRIBUTED ARCHITECTURE PIXEL ART</span>
-            </div>
-            <div class="canvas-frame" id="svg-frame">
-              <div id="svg-container"></div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button class="action-btn btn-copy" id="copy-btn">⚔️ Copy LinkedIn Post</button>
-            <button class="action-btn btn-new" id="new-btn">🔄 Forge Another Quest</button>
-          </div>
-          <p class="share-prompt">🎮 Try it out at <a href="https://mayageva11.github.io/questforge" target="_blank">mayageva11.github.io/questforge</a></p>
-        </div>
-
+        <p class="share-prompt">🎮 Try it out at <a href="https://mayageva11.github.io/questforge" target="_blank">mayageva11.github.io/questforge</a></p>
       </div>
+
     </div>
 
     <!-- Footer -->
-    <footer>Built by Maya Geva — Transformed into a System Design Hub ⚔️</footer>
+    <footer>Built by Maya Geva — Gamified System Design 🔮</footer>
+  </div>
+
+  <!-- API SETTINGS DRAWERS OVERLAY MODAL -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-modal-card">
+      <h3 class="screen-title" style="margin-bottom: 0.4rem;">⚙️ API Configuration</h3>
+      <p class="screen-subtitle" style="margin-bottom: 1.25rem;">Modify or erase your saved Claude API key.</p>
+      
+      <label for="modal-api-key">Anthropic API Key</label>
+      <div class="api-key-input-wrapper">
+        <input type="password" id="modal-api-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+        <button class="api-toggle-btn" id="modal-api-toggle-btn" onclick="toggleModalKeyVisibility()" type="button" title="Toggle visibility">👁️</button>
+      </div>
+      
+      <div class="settings-modal-actions">
+        <button class="settings-modal-btn settings-modal-btn-save" onclick="saveModalApiKey()">Save Settings</button>
+        <button class="settings-modal-btn settings-modal-btn-close" onclick="closeSettingsModal()">Close</button>
+      </div>
+      <button class="settings-modal-btn-clear" onclick="clearModalApiKey()">Clear Saved Key</button>
+    </div>
   </div>
 
   <script>
-    const QUICK_QUESTS = [
-      "Design a highly available notification service",
-      "Design a rate limiter for a public API",
-      "Design a real-time chat app like WhatsApp",
-      "Design a global distributed cache (Redis-like)",
-      "Design a URL shortener like Bit.ly",
-      "Design a video streaming platform (YouTube-scale)",
-      "Design a ride-sharing dispatch system (Uber-like)",
-      "Design a distributed job scheduler / task queue"
+    const CHALLENGES = [
+      {
+        title: "Notification Service",
+        icon: "📣",
+        desc: "Highly available service delivering alerts to millions of users simultaneously.",
+        prompt: "Design a highly available notification service"
+      },
+      {
+        title: "API Rate Limiter",
+        icon: "⏳",
+        desc: "Prevent abuse and load spikes on a public developer API system.",
+        prompt: "Design a rate limiter for a public API"
+      },
+      {
+        title: "Real-time Chat",
+        icon: "💬",
+        desc: "Instant text delivery and read state syncing like WhatsApp at scale.",
+        prompt: "Design a real-time chat app like WhatsApp"
+      },
+      {
+        title: "Distributed Cache",
+        icon: "📦",
+        desc: "Redis-like cache network with rapid lookups and evictions.",
+        prompt: "Design a global distributed cache (Redis-like)"
+      },
+      {
+        title: "URL Shortener",
+        icon: "🔗",
+        desc: "Translate long links to tiny tokens under heavy redirection load.",
+        prompt: "Design a URL shortener like Bit.ly"
+      },
+      {
+        title: "Video Streamer",
+        icon: "📺",
+        desc: "Ingest and distribute video fragments globally with ultra-low latency.",
+        prompt: "Design a video streaming platform (YouTube-scale)"
+      },
+      {
+        title: "Ride Dispatcher",
+        icon: "🚗",
+        desc: "Match passengers to vehicles in real-time under high location updates.",
+        prompt: "Design a ride-sharing dispatch system (Uber-like)"
+      },
+      {
+        title: "Distributed Scheduler",
+        icon: "⏰",
+        desc: "Queue and execute millions of chronologically triggered batch tasks.",
+        prompt: "Design a distributed job scheduler / task queue"
+      }
     ];
 
     const FLAVORS = [
@@ -222,31 +210,14 @@
       "Calling the Raven Courier Guild..."
     ];
 
-    // Build chips
-    const chipsEl = document.getElementById('chips');
-    const questionEl = document.getElementById('question');
-    
-    QUICK_QUESTS.forEach(q => {
-      const chip = document.createElement('button');
-      chip.className = 'chip';
-      chip.textContent = q;
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        questionEl.value = q;
-        questionEl.focus();
-      });
-      chipsEl.appendChild(chip);
-    });
-
-    // Elements
+    // Dom Elements
     const apiKeyEl = document.getElementById('api-key');
+    const modalApiKeyEl = document.getElementById('modal-api-key');
     const forgeBtn = document.getElementById('forge-btn');
-    const loadingEl = document.getElementById('loading');
+    const loadingEl = document.getElementById('screen-loading');
     const flavorEl = document.getElementById('loading-flavor');
     const errorEl = document.getElementById('error-box');
-    const resultsEl = document.getElementById('results');
-    const onboardingEl = document.getElementById('onboarding-view');
+    const resultsEl = document.getElementById('screen-results');
     const titleEl = document.getElementById('quest-title');
     const storyEl = document.getElementById('story-text');
     const lessonEl = document.getElementById('lesson-text');
@@ -254,73 +225,143 @@
     const svgContainer = document.getElementById('svg-container');
     const copyBtn = document.getElementById('copy-btn');
     const newBtn = document.getElementById('new-btn');
+    const questionEl = document.getElementById('question');
 
     let lastResult = null;
     let flavorInterval = null;
 
-    // Load API key from local storage on page load
+    // Load Challenge Selector Cards
+    const gridEl = document.getElementById('challenges-grid');
+    CHALLENGES.forEach((c, index) => {
+      const card = document.createElement('div');
+      card.className = 'challenge-card';
+      card.innerHTML = `
+        <div class="challenge-icon">${c.icon}</div>
+        <div class="challenge-title">${c.title}</div>
+        <div class="challenge-desc">${c.desc}</div>
+      `;
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.challenge-card').forEach(x => x.classList.remove('active'));
+        card.classList.add('active');
+        questionEl.value = c.prompt;
+        questionEl.focus();
+      });
+      gridEl.appendChild(card);
+    });
+
+    // Screen transition switcher using View Transitions API
+    function showScreen(screenId) {
+      const screens = ['screen-api', 'screen-selector', 'screen-loading', 'screen-results'];
+      
+      const updateDOM = () => {
+        screens.forEach(s => {
+          const el = document.getElementById(s);
+          if (s === screenId) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        });
+
+        // Toggle visibility of gear settings icon
+        const gearEl = document.getElementById('card-actions');
+        if (screenId === 'screen-selector' || screenId === 'screen-results') {
+          gearEl.classList.remove('hidden');
+        } else {
+          gearEl.classList.add('hidden');
+        }
+      };
+
+      if (document.startViewTransition) {
+        document.startViewTransition(updateDOM);
+      } else {
+        updateDOM();
+      }
+    }
+
+    // App Initialization
     window.addEventListener('DOMContentLoaded', () => {
       const savedKey = localStorage.getItem('questforge_api_key');
       if (savedKey) {
         apiKeyEl.value = savedKey;
-        updateSettingsHeader();
+        modalApiKeyEl.value = savedKey;
+        showScreen('screen-selector');
       } else {
-        document.getElementById('settings-section').classList.remove('collapsed');
+        showScreen('screen-api');
       }
     });
 
-    // Handle settings section expand/collapse
-    function toggleSettings() {
-      const section = document.getElementById('settings-section');
-      section.classList.toggle('collapsed');
-    }
-
-    // Toggle password visibility of API key
-    function toggleKeyVisibility() {
-      const apiInput = document.getElementById('api-key');
-      const toggleBtn = document.getElementById('api-toggle-btn');
-      if (apiInput.type === 'password') {
-        apiInput.type = 'text';
-        toggleBtn.textContent = '🔒';
-      } else {
-        apiInput.type = 'password';
-        toggleBtn.textContent = '👁️';
-      }
-    }
-
-    // Save key to local storage
+    // Save key from welcome screen
     function saveApiKey() {
       const key = apiKeyEl.value.trim();
       if (!key) {
-        alert('Please enter a valid Claude API key first.');
+        alert('Please enter a valid Claude API key.');
         return;
       }
       localStorage.setItem('questforge_api_key', key);
-      updateSettingsHeader();
-      document.getElementById('settings-section').classList.add('collapsed');
-      alert('Anthropic API key saved to your local browser storage!');
+      modalApiKeyEl.value = key; // Sync with modal
+      showScreen('screen-selector');
     }
 
-    // Clear key from local storage
-    function clearApiKey() {
+    // Save key from settings modal
+    function saveModalApiKey() {
+      const key = modalApiKeyEl.value.trim();
+      if (!key) {
+        alert('Please enter a valid Claude API key.');
+        return;
+      }
+      localStorage.setItem('questforge_api_key', key);
+      apiKeyEl.value = key; // Sync with welcome input
+      closeSettingsModal();
+    }
+
+    // Clear saved key
+    function clearModalApiKey() {
       localStorage.removeItem('questforge_api_key');
       apiKeyEl.value = '';
-      updateSettingsHeader();
-      alert('Saved API key cleared.');
+      modalApiKeyEl.value = '';
+      closeSettingsModal();
+      showScreen('screen-api');
     }
 
-    // Update settings header to reflect state
-    function updateSettingsHeader() {
-      const savedKey = localStorage.getItem('questforge_api_key');
-      const headerSpan = document.querySelector('.settings-header span');
-      if (savedKey) {
-        headerSpan.textContent = '⚙️ Claude API Configured (Saved)';
+    // Toggle API key visibility (welcome screen)
+    function toggleKeyVisibility() {
+      const apiInput = document.getElementById('api-key');
+      const btn = document.getElementById('api-toggle-btn');
+      if (apiInput.type === 'password') {
+        apiInput.type = 'text';
+        btn.textContent = '🔒';
       } else {
-        headerSpan.textContent = '⚙️ Claude API Configuration (Not Set)';
+        apiInput.type = 'password';
+        btn.textContent = '👁️';
       }
     }
 
-    // Enter key on textarea submits (Cmd/Ctrl + Enter)
+    // Toggle API key visibility (settings modal)
+    function toggleModalKeyVisibility() {
+      const apiInput = document.getElementById('modal-api-key');
+      const btn = document.getElementById('modal-api-toggle-btn');
+      if (apiInput.type === 'password') {
+        apiInput.type = 'text';
+        btn.textContent = '🔒';
+      } else {
+        apiInput.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    // Settings Modal controls
+    function openSettingsModal() {
+      const savedKey = localStorage.getItem('questforge_api_key') || '';
+      modalApiKeyEl.value = savedKey;
+      document.getElementById('settings-modal').classList.add('active');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.remove('active');
+    }
+
+    // Cmd/Ctrl + Enter key listener inside textarea to submit
     questionEl.addEventListener('keydown', e => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) forgeQuest();
     });
@@ -330,20 +371,18 @@
       const question = questionEl.value.trim();
 
       if (!apiKey) {
-        showError('❌ Enter your Claude API key first in the API Configuration drawer.');
-        document.getElementById('settings-section').classList.remove('collapsed');
+        showError('Enter your Claude API key in the configuration modal.');
+        openSettingsModal();
         return;
       }
       if (!question) {
-        showError('❌ Select a distributed system challenge or write your own.');
+        showError('Select a challenge card or type your own system design query.');
         return;
       }
 
-      // Reset UI state
+      // Transition to loading screen
       errorEl.classList.add('hidden');
-      resultsEl.classList.add('hidden');
-      onboardingEl.classList.add('hidden');
-      loadingEl.classList.remove('hidden');
+      showScreen('screen-loading');
       forgeBtn.disabled = true;
 
       // Cycle flavor texts
@@ -421,14 +460,14 @@ You must return your response STRICTLY in the following JSON format (no markdown
         const result = JSON.parse(raw);
         lastResult = result;
 
-        // Render fields
+        // Render Results
         titleEl.textContent = result.title;
         storyEl.textContent = result.story;
         lessonEl.textContent = result.lesson;
 
         svgContainer.innerHTML = result.svg_code;
         
-        // Ensure SVG responsivity
+        // Setup responsive SVG
         const svg = svgContainer.querySelector('svg');
         if (svg) {
           svg.setAttribute('width', '100%');
@@ -440,44 +479,42 @@ You must return your response STRICTLY in the following JSON format (no markdown
         void svgFrame.offsetWidth;
         svgFrame.classList.add('glow-pulse');
 
-        // Display results
-        resultsEl.classList.remove('hidden');
-        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Transition to results screen
+        showScreen('screen-results');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
       } catch (err) {
         const msg = err.message || '';
+        let errorUserMsg = '';
         if (msg.startsWith('INVALID_KEY') || msg.includes('invalid x-api-key') || msg.includes('authentication'))
-          showError('❌ Invalid API key. Make sure you entered a valid API key from console.anthropic.com.');
+          errorUserMsg = 'Invalid API key. Check settings and key permissions.';
         else if (msg.startsWith('RATE_LIMIT'))
-          showError('❌ API Rate limit hit. Wait a moment, then try again.');
+          errorUserMsg = 'Claude API is busy. Wait a moment, then try again.';
         else if (msg.startsWith('OVERLOADED'))
-          showError('❌ Claude is overloaded right now. Try again in a few seconds.');
+          errorUserMsg = 'Claude is overloaded right now. Retry shortly.';
         else if (msg.startsWith('FORBIDDEN') || msg.includes('credit'))
-          showError('❌ Access denied. Check that your Anthropic account has active billing credits at console.anthropic.com.');
+          errorUserMsg = 'Billing limit reached. Top up billing credits at console.anthropic.com.';
         else if (err.name === 'TypeError' || msg.includes('fetch') || msg.includes('network') || msg.includes('Failed'))
-          showError('❌ Network error — could not reach the Claude API. Check your internet connection.');
+          errorUserMsg = 'Network issue — cannot reach Claude. Please check internet connection.';
         else
-          showError(`❌ Error: ${msg}`);
+          errorUserMsg = `Error: ${msg}`;
+        
+        showError(errorUserMsg);
         console.error(err);
       } finally {
         clearInterval(flavorInterval);
-        loadingEl.classList.add('hidden');
         forgeBtn.disabled = false;
       }
     }
 
     function showError(msg) {
-      errorEl.textContent = msg;
+      errorEl.textContent = `❌ ${msg}`;
       errorEl.classList.remove('hidden');
       clearInterval(flavorInterval);
-      loadingEl.classList.add('hidden');
-      forgeBtn.disabled = false;
-      if (!lastResult) {
-        onboardingEl.classList.remove('hidden');
-      }
+      showScreen('screen-selector');
     }
 
-    // Copy to Clipboard (LinkedIn Format)
+    // Clipboard Copy
     copyBtn.addEventListener('click', async () => {
       if (!lastResult) return;
       const text =
@@ -488,21 +525,20 @@ You must return your response STRICTLY in the following JSON format (no markdown
       try {
         await navigator.clipboard.writeText(text);
         copyBtn.textContent = '✅ Copied!';
-        setTimeout(() => { copyBtn.textContent = '⚔️ Copy LinkedIn Post'; }, 2000);
+        setTimeout(() => { copyBtn.textContent = '📋 Copy LinkedIn Post'; }, 2000);
       } catch {
         copyBtn.textContent = '❌ Copy failed';
-        setTimeout(() => { copyBtn.textContent = '⚔️ Copy LinkedIn Post'; }, 2000);
+        setTimeout(() => { copyBtn.textContent = '📋 Copy LinkedIn Post'; }, 2000);
       }
     });
 
-    // New Quest Reset
+    // Reset quest / Forge Another
     newBtn.addEventListener('click', () => {
-      resultsEl.classList.add('hidden');
       errorEl.classList.add('hidden');
       questionEl.value = '';
       lastResult = null;
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      onboardingEl.classList.remove('hidden');
+      document.querySelectorAll('.challenge-card').forEach(c => c.classList.remove('active'));
+      showScreen('screen-selector');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       questionEl.focus();
     });
