@@ -656,6 +656,183 @@ input::placeholder {
   line-height: 1.6;
 }
 
+/* ── Image Legend ────────────────────────────────────────────── */
+.image-legend {
+  background: rgba(10, 8, 22, 0.8);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  padding: 1rem 1.25rem;
+}
+
+.image-legend-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.68rem;
+  color: var(--accent-lavender);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.legend-item {
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.06);
+}
+
+.legend-item:last-child {
+  border-bottom: none;
+}
+
+/* ── Test Architecture Pyramid ───────────────────────────────── */
+.test-arch-box {
+  background: rgba(167, 139, 250, 0.03);
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  border-left: 4px solid var(--accent-lavender);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.test-arch-label {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.72rem;
+  color: var(--accent-lavender);
+  display: block;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.test-arch-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.test-pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 1.5rem;
+}
+
+.pyramid-layer {
+  width: 100%;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.layer-e2e {
+  width: 70%;
+  background: rgba(244, 114, 182, 0.06);
+  border: 1px solid rgba(244, 114, 182, 0.2);
+}
+
+.layer-integration {
+  width: 85%;
+  background: rgba(167, 139, 250, 0.06);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.layer-unit {
+  width: 100%;
+  background: rgba(45, 212, 191, 0.06);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+}
+
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.layer-icon {
+  font-size: 1rem;
+}
+
+.layer-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.layer-tag {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.layer-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.layer-list li {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.layer-e2e .layer-list li::before    { content: '→'; position: absolute; left: 0; color: var(--accent-pink); }
+.layer-integration .layer-list li::before { content: '→'; position: absolute; left: 0; color: var(--accent-lavender); }
+.layer-unit .layer-list li::before   { content: '→'; position: absolute; left: 0; color: var(--accent-teal); }
+
+.pyramid-arrow {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0;
+  text-align: center;
+  opacity: 0.6;
+}
+
+.tool-stack-box {
+  background: rgba(251, 191, 36, 0.04);
+  border: 1px solid rgba(251, 191, 36, 0.12);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+}
+
+.tool-stack-label {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: var(--accent-yellow);
+  display: block;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tool-stack-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
 /* Canvas SVG frame styling */
 .svg-canvas-container {
   margin-bottom: 2rem;
@@ -696,7 +873,8 @@ input::placeholder {
   position: relative;
   background: rgba(5, 3, 10, 0.95);
   border: 1px solid var(--border-color);
-  border-radius: 0 0 16px 16px;
+  border-radius: 0;
+  border-bottom: none;
   padding: 1.25rem;
   overflow: hidden;
   box-shadow: var(--shadow-lg);

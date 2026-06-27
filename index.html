@@ -135,6 +135,51 @@
           <div class="canvas-frame" id="svg-frame">
             <img id="quest-image" class="quest-image" alt="Quest scene">
           </div>
+          <!-- Image Legend -->
+          <div class="image-legend" id="image-legend">
+            <span class="image-legend-title">🗺️ DECODE THE SCENE</span>
+            <div class="legend-items" id="legend-items"></div>
+          </div>
+        </div>
+
+        <!-- Test Architecture Diagram -->
+        <div class="test-arch-box">
+          <span class="test-arch-label">🏗️ HOW TO AUTOMATE THIS SYSTEM</span>
+          <p class="test-arch-subtitle">A layered test architecture — from fast unit tests at the base to full end-to-end flows at the top</p>
+
+          <div class="test-pyramid">
+            <div class="pyramid-layer layer-e2e">
+              <div class="layer-header">
+                <span class="layer-icon">🌐</span>
+                <span class="layer-name">E2E Tests</span>
+                <span class="layer-tag">Few · Slow · High confidence</span>
+              </div>
+              <ul class="layer-list" id="e2e-list"></ul>
+            </div>
+            <div class="pyramid-arrow">▲ built on top of ▲</div>
+            <div class="pyramid-layer layer-integration">
+              <div class="layer-header">
+                <span class="layer-icon">🔗</span>
+                <span class="layer-name">Integration Tests</span>
+                <span class="layer-tag">Medium · Real services</span>
+              </div>
+              <ul class="layer-list" id="integration-list"></ul>
+            </div>
+            <div class="pyramid-arrow">▲ built on top of ▲</div>
+            <div class="pyramid-layer layer-unit">
+              <div class="layer-header">
+                <span class="layer-icon">⚡</span>
+                <span class="layer-name">Unit Tests</span>
+                <span class="layer-tag">Many · Fast · Isolated</span>
+              </div>
+              <ul class="layer-list" id="unit-list"></ul>
+            </div>
+          </div>
+
+          <div class="tool-stack-box">
+            <span class="tool-stack-label">🔧 RECOMMENDED TOOL STACK</span>
+            <p class="tool-stack-text" id="tool-stack-text"></p>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -474,6 +519,15 @@ Return STRICTLY raw JSON, no markdown:
     "test_cases": ["3 to 4 specific, actionable test scenarios a senior automation engineer would write for this exact system. Each must be a concrete test case — not vague. Include API tests, integration tests, and at least one negative/failure scenario."],
     "edge_case": "The single most important edge case or failure scenario that junior engineers always overlook when testing this specific system — be very specific to this design.",
     "performance_test": "One concrete load or performance test scenario relevant to this system — describe what to measure, what threshold to watch, and what tool to use (e.g. k6, Locust, Gatling)."
+  },
+  "image_legend": [
+    "emoji + fantasy element name = system design concept it represents (repeat this format for 4-5 key elements visible in the scene)"
+  ],
+  "test_architecture": {
+    "e2e": ["2-3 specific E2E test scenarios for this exact system — what a real user flow looks like end-to-end"],
+    "integration": ["2-3 specific integration test scenarios — testing how components connect and communicate"],
+    "unit": ["2-3 specific unit test scenarios — testing individual functions or logic in isolation"],
+    "tool_stack": "Recommended tool stack for testing this specific system type — name 3-4 real tools with one line on why each fits here"
   }
 }`;
 
@@ -516,6 +570,32 @@ Return STRICTLY raw JSON, no markdown:
         });
         document.getElementById('edge-case-text').textContent = auto.edge_case || '';
         document.getElementById('performance-test-text').textContent = auto.performance_test || '';
+
+        // Image legend
+        const legendItems = document.getElementById('legend-items');
+        legendItems.innerHTML = '';
+        (result.image_legend || []).forEach(line => {
+          const div = document.createElement('div');
+          div.className = 'legend-item';
+          div.textContent = line;
+          legendItems.appendChild(div);
+        });
+
+        // Test architecture pyramid
+        const arch = result.test_architecture || {};
+        const fillList = (id, items) => {
+          const el = document.getElementById(id);
+          el.innerHTML = '';
+          (items || []).forEach(t => {
+            const li = document.createElement('li');
+            li.textContent = t;
+            el.appendChild(li);
+          });
+        };
+        fillList('e2e-list', arch.e2e);
+        fillList('integration-list', arch.integration);
+        fillList('unit-list', arch.unit);
+        document.getElementById('tool-stack-text').textContent = arch.tool_stack || '';
 
         // Generate image via Pollinations.ai (free, no API key needed)
         // Use the AI-generated image_scene for a quest-specific illustration
