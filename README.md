@@ -13,15 +13,15 @@
 
 ---
 
-![QuestForge Demo — Rate Limiter quest scene](assets/demo-quest.png)
+![QuestForge Demo — Real-time Chat (WhatsApp) quest scene](assets/demo-quest.png)
 
-> **Quest: "Design a Rate Limiter for a Public API"**
+> **Quest: "Design a Real-time Chat App like WhatsApp"**
 >
-> 🧌 **The troll** = the rate limiter — he decides who gets through
-> 🪣 **Golden buckets at his feet** = token buckets — tokens refill over time, each request spends one
-> ⏳ **The hourglass in the sky** = the time window — when it resets, tokens refill
-> 🐦‍⬛ **The queue of ravens** = incoming API requests waiting their turn
-> 🚫 **Envelopes flying away** = rejected requests — 429 Too Many Requests
+> 🧙 **Two wizards on a bridge** = two users connected in a chat session
+> 🐦‍⬛ **The raven flying between them** = the message broker routing messages in real time (WebSocket connection)
+> 🟡 **Glowing orbs above each wizard** = presence indicators — green means online, each orb is a live status signal
+> 📜 **Scroll piles under the bridge** = message history stored in the database — retrieved when you open an old chat
+> 🪙 **Golden stacks** = the message queue — messages buffered and delivered in order
 >
 > *Each quest generates a unique cartoon scene like this, tailored to the system design concept you chose.*
 
