@@ -161,7 +161,7 @@ h1 {
 .tagline {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   color: var(--text-secondary);
-  font-weight: 450;
+  font-weight: 400;
   max-width: 550px;
   margin: 0 auto;
 }
@@ -178,7 +178,7 @@ h1 {
   box-shadow: var(--shadow-lg);
   position: relative;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  view-transition-name: app-card; /* Shared View Transition name */
+  /* view-transition-name removed: causes Safari rendering glitch */
 }
 
 @media (max-width: 500px) {
@@ -396,7 +396,7 @@ input::placeholder {
 
 .challenge-title {
   font-size: 0.95rem;
-  font-weight: 750;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -742,7 +742,7 @@ input::placeholder {
 
 /* ── API Edit Drawer Overlay Modal ────────────────────── */
 .settings-modal {
-  display: none;
+  display: none !important;
   position: fixed;
   inset: 0;
   background: rgba(5, 3, 10, 0.75);
@@ -752,6 +752,12 @@ input::placeholder {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  visibility: hidden;
+}
+
+.settings-modal.active {
+  display: flex !important;
+  visibility: visible;
 }
 
 .settings-modal.active {

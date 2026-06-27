@@ -131,7 +131,7 @@
   </div>
 
   <!-- API SETTINGS DRAWERS OVERLAY MODAL -->
-  <div class="settings-modal" id="settings-modal">
+  <div class="settings-modal" id="settings-modal" style="display:none">
     <div class="settings-modal-card">
       <h3 class="screen-title" style="margin-bottom: 0.4rem;">⚙️ API Configuration</h3>
       <p class="screen-subtitle" style="margin-bottom: 1.25rem;">Modify or erase your saved Claude API key.</p>
@@ -354,11 +354,15 @@
     function openSettingsModal() {
       const savedKey = localStorage.getItem('questforge_api_key') || '';
       modalApiKeyEl.value = savedKey;
-      document.getElementById('settings-modal').classList.add('active');
+      const m = document.getElementById('settings-modal');
+      m.style.display = '';
+      m.classList.add('active');
     }
 
     function closeSettingsModal() {
-      document.getElementById('settings-modal').classList.remove('active');
+      const m = document.getElementById('settings-modal');
+      m.classList.remove('active');
+      m.style.display = 'none';
     }
 
     // Cmd/Ctrl + Enter key listener inside textarea to submit
