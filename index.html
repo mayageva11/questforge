@@ -838,7 +838,13 @@ You must return your response STRICTLY in the following JSON format (no markdown
 
         if (!response.ok) {
           const err = await response.json().catch(() => ({}));
-          throw new Error(err?.error?.message || `HTTP ${response.status}`);
+          const msg = err?.error?.message || `HTTP ${response.status}`;
+          const status = response.status;
+          if (status === 401) throw new Error(`INVALID_KEY: ${msg}`);
+          if (status === 403) throw new Error(`FORBIDDEN: ${msg}`);
+          if (status === 429) throw new Error(`RATE_LIMIT: ${msg}`);
+          if (status === 529 || status === 503) throw new Error(`OVERLOADED: ${msg}`);
+          throw new Error(msg);
         }
 
         const data = await response.json();
@@ -871,7 +877,19 @@ You must return your response STRICTLY in the following JSON format (no markdown
         resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       } catch (err) {
-        showError('❌ The Dragon rejected your scroll. Check your API key.');
+        const msg = err.message || '';
+        if (msg.startsWith('INVALID_KEY') || msg.includes('invalid x-api-key') || msg.includes('authentication'))
+          showError('❌ Invalid API key. Make sure you copied the full key from console.anthropic.com.');
+        else if (msg.startsWith('RATE_LIMIT'))
+          showError('❌ Rate limit hit. Wait a moment, then try again.');
+        else if (msg.startsWith('OVERLOADED'))
+          showError('❌ Claude is overloaded right now. Try again in a few seconds.');
+        else if (msg.startsWith('FORBIDDEN') || msg.includes('credit'))
+          showError('❌ Access denied. Check that your Anthropic account has billing set up at console.anthropic.com.');
+        else if (err.name === 'TypeError' || msg.includes('fetch') || msg.includes('network') || msg.includes('Failed'))
+          showError('❌ Network error — could not reach the Claude API. Check your internet connection.');
+        else
+          showError(`❌ Error: ${msg}`);
         console.error(err);
       } finally {
         clearInterval(flavorInterval);
