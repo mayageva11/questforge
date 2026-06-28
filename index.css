@@ -33,6 +33,15 @@
   padding: 0;
 }
 
+/* Prevent flex/grid items from overflowing their containers in Chrome */
+* {
+  min-width: 0;
+}
+
+html {
+  overflow-x: hidden; /* Chrome needs this on html, not just body */
+}
+
 body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
@@ -44,6 +53,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   line-height: 1.6;
+  width: 100%;
 }
 
 /* Crisp slate-200 grid — SaaS light mode depth */
@@ -77,12 +87,20 @@ body::before {
 }
 
 /* ── Floating Glow Blobs ────────────────────────────────── */
-.glow-blob {
+/* Fixed overlay clips blobs so they never widen the viewport in Chrome */
+.glow-overlay {
   position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glow-blob {
+  position: absolute; /* relative to .glow-overlay which is already viewport-fixed */
   border-radius: 50%;
   filter: blur(140px);
   opacity: 0.18;
-  z-index: -1;
   pointer-events: none;
   transition: all 1s ease;
 }
@@ -300,6 +318,72 @@ label {
   text-decoration: underline;
 }
 
+/* ── Demo CTA button ──────────────────────────────────────── */
+.demo-btn {
+  width: 100%;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #ffffff;
+  background: var(--gradient-primary);
+  background-size: 200% auto;
+  border: none;
+  padding: 1.1rem;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 14px rgba(13,148,136,0.25);
+}
+
+.demo-btn:hover {
+  background-position: right center;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(13,148,136,0.35);
+}
+
+.demo-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.demo-divider::before,
+.demo-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+/* ── Demo mode banner ─────────────────────────────────────── */
+.demo-banner {
+  background: rgba(79, 70, 229, 0.06);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  border-radius: 12px;
+  padding: 0.75rem 1.1rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.demo-banner a {
+  color: var(--accent-lavender);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.demo-banner a:hover {
+  text-decoration: underline;
+}
+
 /* Form inputs */
 input[type="password"],
 input[type="text"],
@@ -310,11 +394,15 @@ textarea {
   color: var(--text-primary);
   font-family: inherit;
   font-size: 1rem;
-  padding: 0.9rem 1.25rem;
+  padding: 0.9rem 3rem 0.9rem 1.25rem; /* right: room for eye button */
   border-radius: 16px;
   outline: none;
   transition: all 0.25s ease;
   line-height: 1.5;
+}
+
+textarea {
+  padding-right: 1.25rem; /* textarea has no eye button */
 }
 
 input[type="password"]:focus,
@@ -1360,7 +1448,7 @@ footer {
 /* ── Mobile (< 640px) ───────────────────────────────────── */
 @media (max-width: 639px) {
   .app-container {
-    padding: 1.75rem 1rem 4rem;
+    padding: 1.5rem 0.875rem 4rem;
   }
 
   header {
@@ -1368,9 +1456,11 @@ footer {
   }
 
   .header-badge {
-    font-size: 0.6rem;
-    padding: 0.35rem 0.9rem;
-    letter-spacing: 0.1em;
+    font-size: 0.58rem;
+    padding: 0.3rem 0.8rem;
+    letter-spacing: 0.08em;
+    white-space: normal;    /* allow wrapping on very narrow screens */
+    line-height: 1.4;
   }
 
   h1 {
@@ -1406,8 +1496,19 @@ footer {
   input[type="text"],
   textarea {
     font-size: 0.95rem;
-    padding: 0.85rem 1rem;
+    padding: 0.85rem 3rem 0.85rem 1rem; /* keep room for eye button */
     border-radius: 14px;
+  }
+
+  textarea {
+    padding-right: 1rem;
+  }
+
+  .demo-btn {
+    font-size: 0.95rem;
+    padding: 1rem;
+    border-radius: 14px;
+    min-height: 52px;
   }
 
   .unlock-btn,
@@ -1490,6 +1591,51 @@ footer {
   footer {
     font-size: 0.75rem;
     padding: 1.5rem 1rem 2.5rem;
+  }
+
+  /* Pyramid: full width on mobile — narrow % widths clip text */
+  .layer-e2e { width: 100%; }
+  .layer-integration { width: 100%; }
+
+  /* Long text: prevent overflow on narrow screens */
+  .story-text,
+  .lesson-text,
+  .automation-text,
+  .test-case-item,
+  .legend-text-content,
+  .tool-stack-text,
+  .test-system-text,
+  .layer-list li,
+  .key-note,
+  .screen-subtitle,
+  .demo-banner {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Canvas image: remove side padding so image fills edge-to-edge */
+  .canvas-frame {
+    padding: 0.75rem;
+  }
+
+  .image-legend {
+    padding: 0.9rem 1rem;
+  }
+
+  /* Test arch box tighter */
+  .test-arch-box {
+    padding: 1.1rem;
+  }
+
+  .automation-box,
+  .lesson-box {
+    padding: 1rem;
+  }
+
+  /* Demo banner compact */
+  .demo-banner {
+    font-size: 0.78rem;
+    padding: 0.65rem 0.9rem;
   }
 }
 

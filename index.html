@@ -21,9 +21,12 @@
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <!-- Floating background glow elements -->
-  <div class="glow-blob glow-blob-1"></div>
-  <div class="glow-blob glow-blob-2"></div>
+  <!-- Background glow blobs in an overflow-clipped fixed layer
+       so they never participate in flex layout or widen the viewport -->
+  <div class="glow-overlay">
+    <div class="glow-blob glow-blob-1"></div>
+    <div class="glow-blob glow-blob-2"></div>
+  </div>
 
   <!-- Main Container -->
   <div class="app-container">
@@ -717,6 +720,10 @@ Return ONLY valid JSON — no markdown, no extra text:
 
     // App Initialization
     window.addEventListener('DOMContentLoaded', () => {
+      if (new URLSearchParams(window.location.search).has('demo')) {
+        loadDemo();
+        return;
+      }
       const savedKey = localStorage.getItem('questforge_api_key');
       if (savedKey) {
         apiKeyEl.value = savedKey;
