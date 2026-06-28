@@ -52,8 +52,11 @@
       <!-- SCREEN 1: API Configuration Welcomer -->
       <div id="screen-api" class="screen hidden">
         <h2 class="screen-title">🔮 Welcome to QuestForge</h2>
-        <p class="screen-subtitle">Let's configure your Groq API key to start forging System Design quests.</p>
-        
+        <p class="screen-subtitle">Turn any system design challenge into a Pixar-style quest that teaches real architecture. See it for yourself — no setup needed.</p>
+
+        <button class="demo-btn" onclick="loadDemo()">✨ Try a Demo Quest</button>
+        <p class="demo-divider"><span>or add your free Groq key to forge your own</span></p>
+
         <div class="api-form">
           <label for="api-key">Groq API Key</label>
           <div class="api-key-input-wrapper">
@@ -94,6 +97,9 @@
 
       <!-- SCREEN 4: Quest Showcase Results -->
       <div id="screen-results" class="screen hidden">
+        <div class="demo-banner hidden" id="demo-banner">
+          🎮 This is a sample quest — <a href="#" onclick="showScreen('screen-api'); return false;">add your free Groq key</a> to forge your own in seconds
+        </div>
         <div class="results-header-divider">QUEST FORGED</div>
         
         <h2 class="quest-title" id="quest-title"></h2>
@@ -248,6 +254,140 @@
   </div>
 
   <script>
+    // ── Demo Quest (no API key needed) ─────────────────────────
+    const DEMO_QUEST = {
+      title: "The Raven Courier Crisis",
+      story: "A kingdom's message ravens are overwhelmed — too many scrolls, not enough birds. The Hourglass Sentry stands at the gate stamping DENY on scroll after scroll, while golden token buckets on the wall slowly refill with sparkles. Each bucket belongs to one courier guild; drain yours and you wait. Deep in the archives, the Royal Ledger-Keeper records every rejection with a timestamp, because the Kingdom's auditors demand an exact count. The hard tradeoff looms: a fixed time-window counter is simple but lets a clever guild burst twice the limit at window boundaries, while a sliding-window log is perfectly fair but burns parchment for every single raven — memory cost per sender.",
+      lesson: "A sliding-window rate limiter is fair at boundaries but costs O(requests) memory per client — fixed-window is O(1) but allows 2× burst at window edges.",
+      image_scene: "A fat cheerful troll in silver armor stands at a stone castle gate stamping DENY on tiny rolled-up raven scrolls. A glowing golden hourglass floats above his helmet counting down. Behind him rows of golden buckets slowly fill with sparkles. A long queue of tiny ravens clutching scrolls stretches out through the gate into the misty forest.",
+      automation: {
+        test_cases: [
+          "POST /messages 100 times in 60 s from the same IP — assert first 60 return 200, requests 61–100 return 429 with a Retry-After header",
+          "After hitting the 429 limit, wait 61 s and retry — assert 200 OK (window has reset)",
+          "Two concurrent clients each sending 55 req/min — assert neither is blocked (per-client isolation, not a global counter)"
+        ],
+        edge_case: "Fixed-window boundary burst: a client sends 60 requests at 11:59:59 and 60 more at 12:00:01 — both windows allow 60, so 120 requests slip through in 2 seconds. Most junior engineers only test within a single window and never catch this.",
+        performance_test: "k6 load test: 500 virtual users each at 10 req/s for 2 min against the rate-limited endpoint. Thresholds: p95 latency < 50 ms for allowed requests, 0 HTTP 500 errors, 429 rate matches configured limit ±2%."
+      },
+      test_architecture: {
+        e2e: [
+          "Authenticated user hits the rate limit, sees an in-app 'slow down' message, auto-retries after the window resets — full browser flow",
+          "Admin configures per-tier limits (free vs pro) in the dashboard — verify new limits apply to live traffic without a restart"
+        ],
+        integration: [
+          "Verify token-bucket state persists in Redis across API server restarts — no counter resets on redeploy",
+          "Assert X-RateLimit-Limit, X-RateLimit-Remaining, and Retry-After headers are accurate on every response (200 and 429)"
+        ],
+        unit: [
+          "SlidingWindowCounter.increment() correctly evicts expired timestamps and returns the accurate current count",
+          "TokenBucket.consume(n) returns false without decrementing when the bucket holds fewer than n tokens"
+        ],
+        tool_stack: "k6 — JS-native load testing with built-in threshold assertions · Jest + Supertest — API integration layer without a running browser · ioredis-mock — Redis unit tests with zero infrastructure · Playwright — E2E retry UX and admin dashboard flows"
+      },
+      image_legend: [
+        "🧌 Armored Troll = Rate Limiter / API Gateway enforcing per-client quotas",
+        "⌛ Glowing Hourglass = The time window (fixed or sliding) that resets the counter",
+        "🪣 Golden Buckets = Token buckets — one per client, refilling at a steady rate",
+        "🐦 Ravens with Scrolls = Incoming API requests from clients",
+        "📜 DENY Stamp = HTTP 429 Too Many Requests response with Retry-After header",
+        "🏰 Castle Gate = Service entry point — only tokens in-budget pass through"
+      ]
+    };
+
+    const DEMO_AUTO = {
+      test_cases: [
+        "POST /api/messages 100 times within 60 s from the same client IP — assert the first 60 return 200 OK, requests 61–100 return 429 with a Retry-After: 60 header",
+        "After receiving a 429, wait for the Retry-After window to expire, then retry — assert 200 OK and X-RateLimit-Remaining resets to the full quota",
+        "Two concurrent clients each at 55 req/min — assert neither is ever blocked (per-client isolation: one client's quota must not affect another's)"
+      ],
+      edge_case: "Clock skew between distributed API nodes: if Node A's clock is 500 ms ahead of Node B, a client can alternate between nodes at window boundaries and slip twice the allowed requests through. Fix: use a single centralised Redis timestamp for all counter operations — never each server's local clock.",
+      load_test: "k6: ramp from 0 to 500 VUs over 30 s, each sending 10 req/s for 2 min targeting the rate-limited endpoint. Pass thresholds: p95 latency < 50 ms for HTTP 200 responses, zero HTTP 500 errors, observed 429 rate matches the configured limit ±2%. Use k6 threshold syntax: http_req_duration: ['p(95)<50'], http_req_failed: ['rate<0.01']."
+    };
+
+    const DEMO_IMAGE_URL = "https://image.pollinations.ai/prompt/Pixar%20Disney%203D%20animation%3A%20A%20fat%20cheerful%20troll%20in%20silver%20armor%20stands%20at%20a%20stone%20castle%20gate%20stamping%20DENY%20on%20tiny%20rolled-up%20raven%20scrolls.%20A%20glowing%20golden%20hourglass%20floats%20above%20his%20helmet.%20Behind%20him%20rows%20of%20golden%20buckets%20slowly%20fill%20with%20sparkles.%20A%20long%20queue%20of%20tiny%20ravens%20clutching%20scrolls%20stretches%20through%20the%20gate.%20Style%3A%20cinematic%20Pixar%20render%2C%20expressive%20characters%2C%20warm%20vibrant%20colors%2C%20magical%20glowing%20effects%2C%20no%20text.?width=832&height=448&model=flux&nologo=true&seed=4242";
+
+    function loadDemo() {
+      isDemo = true;
+      const result = DEMO_QUEST;
+      lastResult = result;
+      lastAutoResult = null;
+
+      titleEl.textContent = result.title;
+      storyEl.textContent = result.story;
+      lessonEl.textContent = result.lesson;
+
+      const auto = result.automation || {};
+      const testList = document.getElementById('test-cases-list');
+      testList.innerHTML = '';
+      (auto.test_cases || []).forEach(tc => {
+        const li = document.createElement('li');
+        li.className = 'test-case-item';
+        li.textContent = tc;
+        testList.appendChild(li);
+      });
+      document.getElementById('edge-case-text').textContent = auto.edge_case || '';
+      document.getElementById('performance-test-text').textContent = auto.performance_test || '';
+
+      const legendItems = document.getElementById('legend-items');
+      legendItems.innerHTML = '';
+      const legendStr = v => {
+        if (!v) return '';
+        if (typeof v === 'string') return v;
+        return Object.values(v).filter(x => typeof x === 'string').join(' — ') || JSON.stringify(v);
+      };
+      (result.image_legend || []).forEach(line => {
+        const text = legendStr(line).trim();
+        if (!text) return;
+        const div = document.createElement('div');
+        div.className = 'legend-item';
+        const spaceIdx = text.indexOf(' ');
+        if (spaceIdx > 0) {
+          const emojiSpan = document.createElement('span');
+          emojiSpan.className = 'legend-emoji';
+          emojiSpan.textContent = text.substring(0, spaceIdx);
+          const textSpan = document.createElement('span');
+          textSpan.className = 'legend-text-content';
+          textSpan.textContent = text.substring(spaceIdx + 1);
+          div.appendChild(emojiSpan);
+          div.appendChild(textSpan);
+        } else {
+          div.textContent = text;
+        }
+        legendItems.appendChild(div);
+      });
+
+      const arch = result.test_architecture || {};
+      const fillList = (id, items) => {
+        const el = document.getElementById(id);
+        el.innerHTML = '';
+        (items || []).forEach(t => {
+          const li = document.createElement('li');
+          li.textContent = t;
+          el.appendChild(li);
+        });
+      };
+      fillList('e2e-list', arch.e2e);
+      fillList('integration-list', arch.integration);
+      fillList('unit-list', arch.unit);
+      document.getElementById('tool-stack-text').textContent = arch.tool_stack || '';
+
+      document.querySelector('.svg-canvas-container').style.display = '';
+      questImageEl.classList.remove('loaded');
+      questImageEl.style.display = 'block';
+      questImageEl.onload = () => questImageEl.classList.add('loaded');
+      questImageEl.src = DEMO_IMAGE_URL;
+
+      svgFrame.classList.remove('glow-pulse');
+      void svgFrame.offsetWidth;
+      svgFrame.classList.add('glow-pulse');
+
+      document.getElementById('test-system-results').classList.add('hidden');
+      document.getElementById('demo-banner').classList.remove('hidden');
+
+      showScreen('screen-results');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     const CHALLENGES = [
       {
         title: "Notification Service",
@@ -375,6 +515,7 @@
     let lastResult = null;
     let lastAutoResult = null;
     let flavorInterval = null;
+    let isDemo = false;
 
     // ── Quest History (localStorage, max 20) ───────────────────
     const HISTORY_KEY = 'questforge_history';
@@ -436,6 +577,31 @@
     // ── Test This System (second Groq call) ────────────────────
     async function testThisSystem() {
       if (!lastResult) return;
+
+      // In demo mode: load pre-baked deep-dive content, no API call needed
+      if (isDemo) {
+        const btn = document.getElementById('test-system-btn');
+        btn.textContent = '⏳ Analysing...';
+        btn.disabled = true;
+        await new Promise(r => setTimeout(r, 700));
+        lastAutoResult = DEMO_AUTO;
+        const toStr = v => { if (!v) return ''; if (typeof v === 'string') return v; return Object.values(v).filter(x => typeof x === 'string').join(' — ') || JSON.stringify(v); };
+        const casesList = document.getElementById('ts-test-cases');
+        casesList.innerHTML = '';
+        (DEMO_AUTO.test_cases || []).forEach(tc => {
+          const li = document.createElement('li');
+          li.textContent = toStr(tc);
+          casesList.appendChild(li);
+        });
+        document.getElementById('ts-edge-case').textContent = toStr(DEMO_AUTO.edge_case);
+        document.getElementById('ts-load-test').textContent = toStr(DEMO_AUTO.load_test);
+        document.getElementById('test-system-results').classList.remove('hidden');
+        document.getElementById('test-system-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        btn.textContent = '⚙️ Test This System';
+        btn.disabled = false;
+        return;
+      }
+
       const apiKey = localStorage.getItem('questforge_api_key') || '';
       if (!apiKey) { showError('Enter your Groq API key to use this feature.'); return; }
 
@@ -667,6 +833,7 @@ Return ONLY valid JSON — no markdown, no extra text:
     }
 
     async function forgeQuest() {
+      isDemo = false;
       const apiKey = localStorage.getItem('questforge_api_key') || apiKeyEl.value.trim();
       const question = questionEl.value.trim();
 
@@ -846,6 +1013,7 @@ Return STRICTLY raw JSON, no markdown:
 
         saveQuestToHistory(question, result.title);
         document.getElementById('test-system-results').classList.add('hidden');
+        document.getElementById('demo-banner').classList.add('hidden');
         lastAutoResult = null;
 
         showScreen('screen-results');
@@ -877,7 +1045,8 @@ Return STRICTLY raw JSON, no markdown:
       errorEl.textContent = `❌ ${msg}`;
       errorEl.classList.remove('hidden');
       clearInterval(flavorInterval);
-      showScreen('screen-selector');
+      const hasKey = localStorage.getItem('questforge_api_key');
+      showScreen(hasKey ? 'screen-selector' : 'screen-api');
     }
 
     // Clipboard Copy
@@ -909,11 +1078,14 @@ Return STRICTLY raw JSON, no markdown:
       questionEl.value = '';
       lastResult = null;
       lastAutoResult = null;
+      isDemo = false;
       document.getElementById('test-system-results').classList.add('hidden');
+      document.getElementById('demo-banner').classList.add('hidden');
       document.querySelectorAll('.challenge-card').forEach(c => c.classList.remove('active'));
-      showScreen('screen-selector');
+      const hasKey = localStorage.getItem('questforge_api_key');
+      showScreen(hasKey ? 'screen-selector' : 'screen-api');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      questionEl.focus();
+      if (hasKey) questionEl.focus();
     });
   </script>
 </body>
