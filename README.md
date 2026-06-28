@@ -233,9 +233,11 @@ Error 429: Quota exceeded — free_tier limit: 0, model: gemini-2.0-flash
 - 💡 **Architectural lesson** — one plain-English takeaway per quest
 - ⚙️ **Automation Playbook** — concrete test cases, missed edge case, load test scenario
 - 🏗️ **Test Architecture Pyramid** — visual E2E / Integration / Unit layers with tool recommendations
-- 📋 **Copy to LinkedIn** — one-click formatted post
+- ⚙️ **Test This System** — on-demand second Groq call for a focused deep-dive: 3 concrete test cases, the edge case juniors miss, and a specific load test with tool recommendation. Neon cyan button. Results are appended to the LinkedIn copy when used.
+- 📜 **My Quests history** — every quest auto-saved to localStorage (max 20). History modal shows quest title, difficulty badge (Easy / Medium / Hard), original question, and date. Click any entry to reload it instantly.
+- 📋 **Copy to LinkedIn** — one-click formatted post; includes automation deep dive if "Test This System" was run
 - 🔄 **New Quest** — instant reset without page reload
-- ⚙️ **Settings modal** — manage your API key (localStorage only)
+- ⚙️ **Settings modal** — manage your Groq API key (localStorage only, never sent elsewhere)
 - 📱 **Fully responsive** — mobile, tablet, and desktop
 
 ---
