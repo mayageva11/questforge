@@ -778,10 +778,31 @@ Return STRICTLY raw JSON, no markdown:
         // Image legend
         const legendItems = document.getElementById('legend-items');
         legendItems.innerHTML = '';
+        const legendStr = v => {
+          if (!v) return '';
+          if (typeof v === 'string') return v;
+          return Object.values(v).filter(x => typeof x === 'string').join(' — ') || JSON.stringify(v);
+        };
         (result.image_legend || []).forEach(line => {
+          const text = legendStr(line).trim();
+          if (!text) return;
           const div = document.createElement('div');
           div.className = 'legend-item';
-          div.textContent = line;
+          const spaceIdx = text.indexOf(' ');
+          if (spaceIdx > 0) {
+            const emoji = text.substring(0, spaceIdx);
+            const rest = text.substring(spaceIdx + 1);
+            const emojiSpan = document.createElement('span');
+            emojiSpan.className = 'legend-emoji';
+            emojiSpan.textContent = emoji;
+            const textSpan = document.createElement('span');
+            textSpan.className = 'legend-text-content';
+            textSpan.textContent = rest;
+            div.appendChild(emojiSpan);
+            div.appendChild(textSpan);
+          } else {
+            div.textContent = text;
+          }
           legendItems.appendChild(div);
         });
 
