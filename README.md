@@ -75,9 +75,9 @@ Images: [Pollinations.ai](https://pollinations.ai) — free, no API key, just a 
 
 ---
 
-## Challenges Included
+## Challenges Included (16 total)
 
-`📣 Notification Service` · `⏳ Rate Limiter` · `💬 Real-time Chat` · `📦 Distributed Cache` · `🔗 URL Shortener` · `📺 Video Streaming` · `🚗 Ride-sharing Dispatch` · `⏰ Distributed Job Scheduler`
+`📣 Notification Service` · `⏳ Rate Limiter` · `💬 Real-time Chat` · `📦 Distributed Cache` · `🔗 URL Shortener` · `📺 Video Streaming` · `🚗 Ride-sharing Dispatch` · `⏰ Distributed Scheduler` · `🔍 Search Autocomplete` · `📰 News Feed` · `☁️ Cloud File Storage` · `🎟️ Ticketing System` · `📍 Location Service` · `💳 Payment Processing` · `🕷️ Web Crawler` · `🚪 API Gateway`
 
 ---
 

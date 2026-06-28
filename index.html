@@ -296,6 +296,54 @@
         icon: "⏰",
         desc: "Queue and execute millions of chronologically triggered batch tasks.",
         prompt: "Design a distributed job scheduler / task queue"
+      },
+      {
+        title: "Search Autocomplete",
+        icon: "🔍",
+        desc: "Suggest completions in under 100ms as users type, across billions of queries.",
+        prompt: "Design a search autocomplete / typeahead system like Google Search"
+      },
+      {
+        title: "News Feed",
+        icon: "📰",
+        desc: "Rank and deliver a personalised feed to 500M daily users with low latency.",
+        prompt: "Design a social media news feed like Instagram or Facebook"
+      },
+      {
+        title: "Cloud File Storage",
+        icon: "☁️",
+        desc: "Store, sync, and share large files reliably across devices — like Dropbox.",
+        prompt: "Design a cloud file storage and sync system like Dropbox or Google Drive"
+      },
+      {
+        title: "Ticketing System",
+        icon: "🎟️",
+        desc: "Sell limited seats without double-booking under thundering-herd demand.",
+        prompt: "Design an online ticketing system like Ticketmaster"
+      },
+      {
+        title: "Location Service",
+        icon: "📍",
+        desc: "Track millions of moving objects and answer proximity queries in real time.",
+        prompt: "Design a location-based proximity service like Yelp or Uber's driver finder"
+      },
+      {
+        title: "Payment Processing",
+        icon: "💳",
+        desc: "Handle financial transactions with idempotency and zero double-charges.",
+        prompt: "Design a payment processing system like Stripe"
+      },
+      {
+        title: "Web Crawler",
+        icon: "🕷️",
+        desc: "Discover and index billions of web pages efficiently and politely.",
+        prompt: "Design a distributed web crawler like Googlebot"
+      },
+      {
+        title: "API Gateway",
+        icon: "🚪",
+        desc: "Single entry point routing, authenticating, and throttling all client traffic.",
+        prompt: "Design an API Gateway for a large microservices architecture"
       }
     ];
 
@@ -333,8 +381,8 @@
 
     function getDifficulty(q) {
       const t = q.toLowerCase();
-      if (/video|stream|scheduler|ride|dispatch|payment/.test(t)) return 'Hard';
-      if (/url|shortener/.test(t)) return 'Easy';
+      if (/video|stream|scheduler|ride|dispatch|payment|crawler|crawl|news feed|file storage|ticketing/.test(t)) return 'Hard';
+      if (/url|shortener|autocomplete|typeahead/.test(t)) return 'Easy';
       return 'Medium';
     }
 
