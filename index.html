@@ -424,15 +424,22 @@ Return ONLY valid JSON — no markdown, no extra text:
         const auto = JSON.parse(raw);
         lastAutoResult = auto;
 
+        // Normalize any value to a readable string (model sometimes returns objects)
+        const toStr = v => {
+          if (!v) return '';
+          if (typeof v === 'string') return v;
+          return Object.values(v).filter(x => typeof x === 'string').join(' — ') || JSON.stringify(v);
+        };
+
         const casesList = document.getElementById('ts-test-cases');
         casesList.innerHTML = '';
         (auto.test_cases || []).forEach(tc => {
           const li = document.createElement('li');
-          li.textContent = tc;
+          li.textContent = toStr(tc);
           casesList.appendChild(li);
         });
-        document.getElementById('ts-edge-case').textContent = auto.edge_case || '';
-        document.getElementById('ts-load-test').textContent = auto.load_test || '';
+        document.getElementById('ts-edge-case').textContent = toStr(auto.edge_case);
+        document.getElementById('ts-load-test').textContent = toStr(auto.load_test);
 
         document.getElementById('test-system-results').classList.remove('hidden');
         document.getElementById('test-system-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
