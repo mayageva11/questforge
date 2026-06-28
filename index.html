@@ -38,8 +38,9 @@
     <!-- Centered Glassmorphic App Card -->
     <div class="app-card">
       
-      <!-- Top Right Gear Icon (Settings) -->
+      <!-- Top Right Actions (Settings + History) -->
       <div class="card-header-actions hidden" id="card-actions">
+        <button class="settings-btn-icon" onclick="showHistoryModal()" title="My Quest History">📜</button>
         <button class="settings-btn-icon" onclick="openSettingsModal()" title="API Configuration">⚙️</button>
       </div>
 
@@ -185,8 +186,28 @@
         <!-- Actions -->
         <div class="action-buttons">
           <button class="action-btn btn-copy" id="copy-btn">📋 Copy LinkedIn Post</button>
+          <button class="action-btn btn-test-system" id="test-system-btn" onclick="testThisSystem()">⚙️ Test This System</button>
           <button class="action-btn btn-new" id="new-btn">🔄 Forge Another Quest</button>
         </div>
+
+        <!-- Test This System Results (second Groq call, hidden until triggered) -->
+        <div class="test-system-results hidden" id="test-system-results">
+          <span class="test-system-label">🧪 AUTOMATION DEEP DIVE</span>
+          <p class="test-system-subtitle">A second AI pass — focused entirely on how to test this system</p>
+          <div class="test-system-section">
+            <span class="test-system-section-label">✅ Test Cases</span>
+            <ul class="test-system-list" id="ts-test-cases"></ul>
+          </div>
+          <div class="test-system-section">
+            <span class="test-system-section-label">⚠️ Edge Case Juniors Miss</span>
+            <p class="test-system-text" id="ts-edge-case"></p>
+          </div>
+          <div class="test-system-section">
+            <span class="test-system-section-label">📊 Load Test</span>
+            <p class="test-system-text" id="ts-load-test"></p>
+          </div>
+        </div>
+
         <p class="share-prompt">🎮 Try it out at <a href="https://mayageva11.github.io/questforge" target="_blank">mayageva11.github.io/questforge</a></p>
       </div>
 
@@ -194,6 +215,16 @@
 
     <!-- Footer -->
     <footer>Built by Maya Erusalimsky — Gamified System Design 🔮</footer>
+  </div>
+
+  <!-- MY QUESTS HISTORY MODAL -->
+  <div class="settings-modal" id="history-modal" style="display:none">
+    <div class="settings-modal-card history-modal-card">
+      <h3 class="screen-title" style="margin-bottom: 0.25rem;">📜 My Quests</h3>
+      <p class="screen-subtitle" style="margin-bottom: 1rem;">Your last 20 forged quests — click one to reload it.</p>
+      <div id="history-list" class="history-list"></div>
+      <button class="settings-modal-btn settings-modal-btn-close" style="margin-top:1rem;" onclick="closeHistoryModal()">Close</button>
+    </div>
   </div>
 
   <!-- API SETTINGS DRAWERS OVERLAY MODAL -->
@@ -294,7 +325,125 @@
     const questionEl = document.getElementById('question');
 
     let lastResult = null;
+    let lastAutoResult = null;
     let flavorInterval = null;
+
+    // ── Quest History (localStorage, max 20) ───────────────────
+    const HISTORY_KEY = 'questforge_history';
+
+    function getDifficulty(q) {
+      const t = q.toLowerCase();
+      if (/video|stream|scheduler|ride|dispatch|payment/.test(t)) return 'Hard';
+      if (/url|shortener/.test(t)) return 'Easy';
+      return 'Medium';
+    }
+
+    function saveQuestToHistory(question, title) {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      history.unshift({
+        id: Date.now(),
+        question,
+        title,
+        difficulty: getDifficulty(question),
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 20)));
+    }
+
+    function showHistoryModal() {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      const listEl = document.getElementById('history-list');
+      if (history.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:1.5rem 0;">No quests yet — forge your first one!</p>';
+      } else {
+        listEl.innerHTML = history.map(h => `
+          <div class="history-item" onclick="reloadQuest('${h.question.replace(/'/g, "\\'")}')">
+            <div class="history-item-top">
+              <span class="history-title">${h.title}</span>
+              <span class="difficulty-badge badge-${h.difficulty.toLowerCase()}">${h.difficulty}</span>
+            </div>
+            <div class="history-question">${h.question}</div>
+            <div class="history-date">${h.date}</div>
+          </div>
+        `).join('');
+      }
+      const m = document.getElementById('history-modal');
+      m.style.display = '';
+      m.classList.add('active');
+    }
+
+    function closeHistoryModal() {
+      const m = document.getElementById('history-modal');
+      m.classList.remove('active');
+      m.style.display = 'none';
+    }
+
+    function reloadQuest(question) {
+      closeHistoryModal();
+      questionEl.value = question;
+      showScreen('screen-selector');
+      questionEl.focus();
+    }
+
+    // ── Test This System (second Groq call) ────────────────────
+    async function testThisSystem() {
+      if (!lastResult) return;
+      const apiKey = localStorage.getItem('questforge_api_key') || '';
+      if (!apiKey) { showError('Enter your Groq API key to use this feature.'); return; }
+
+      const btn = document.getElementById('test-system-btn');
+      btn.textContent = '⏳ Analysing...';
+      btn.disabled = true;
+      lastAutoResult = null;
+
+      const prompt = `You are a Senior Automation Engineer. The system being tested is: "${lastResult.title}".
+Context: ${lastResult.story}
+
+Return ONLY valid JSON — no markdown, no extra text:
+{
+  "test_cases": [
+    "Concrete test case 1 — include HTTP method/action, input, exact expected result",
+    "Concrete test case 2 — a negative or failure scenario",
+    "Concrete test case 3 — an integration or state/sequence scenario"
+  ],
+  "edge_case": "The exact failure mode junior engineers consistently overlook for this specific system — be precise and specific to this architecture",
+  "load_test": "Specific load test: name the tool (k6/Locust/Gatling), describe the scenario, state the metric to watch and the pass/fail threshold"
+}`;
+
+      try {
+        const GROQ_MODELS = ['llama-3.1-8b-instant', 'gemma2-9b-it', 'llama3-8b-8192'];
+        let data = null;
+        for (const model of GROQ_MODELS) {
+          try { data = await callGroq(apiKey, model, prompt); break; }
+          catch (e) { if (!e.message.startsWith('RATE_LIMIT') && !e.message.includes('not found')) throw e; }
+        }
+        if (!data) throw new Error('All models rate-limited. Try again in a moment.');
+
+        let raw = data.choices[0].message.content.trim()
+          .replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+        const auto = JSON.parse(raw);
+        lastAutoResult = auto;
+
+        const casesList = document.getElementById('ts-test-cases');
+        casesList.innerHTML = '';
+        (auto.test_cases || []).forEach(tc => {
+          const li = document.createElement('li');
+          li.textContent = tc;
+          casesList.appendChild(li);
+        });
+        document.getElementById('ts-edge-case').textContent = auto.edge_case || '';
+        document.getElementById('ts-load-test').textContent = auto.load_test || '';
+
+        document.getElementById('test-system-results').classList.remove('hidden');
+        document.getElementById('test-system-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (err) {
+        console.error(err);
+        alert('⚙️ Test generation failed: ' + (err.message || 'Unknown error'));
+      } finally {
+        btn.textContent = '⚙️ Test This System';
+        btn.disabled = false;
+      }
+    }
 
     // Load Challenge Selector Cards
     const gridEl = document.getElementById('challenges-grid');
@@ -619,6 +768,10 @@ Return STRICTLY raw JSON, no markdown:
         void svgFrame.offsetWidth;
         svgFrame.classList.add('glow-pulse');
 
+        saveQuestToHistory(question, result.title);
+        document.getElementById('test-system-results').classList.add('hidden');
+        lastAutoResult = null;
+
         showScreen('screen-results');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -654,11 +807,16 @@ Return STRICTLY raw JSON, no markdown:
     // Clipboard Copy
     copyBtn.addEventListener('click', async () => {
       if (!lastResult) return;
-      const text =
+      let text =
         `${lastResult.title} 🔮\n\n` +
         `${lastResult.story}\n\n` +
-        `💡 Architectural Lesson: ${lastResult.lesson}\n\n` +
-        `🎮 Challenge forged with QuestForge: mayageva11.github.io/questforge`;
+        `💡 Architectural Lesson: ${lastResult.lesson}\n\n`;
+      if (lastAutoResult) {
+        text += `⚙️ How I'd Test This System:\n`;
+        (lastAutoResult.test_cases || []).forEach(tc => { text += `✓ ${tc}\n`; });
+        text += `\n⚠️ Edge case to never miss: ${lastAutoResult.edge_case}\n\n`;
+      }
+      text += `🎮 Challenge forged with QuestForge: mayageva11.github.io/questforge`;
       try {
         await navigator.clipboard.writeText(text);
         copyBtn.textContent = '✅ Copied!';
@@ -674,6 +832,8 @@ Return STRICTLY raw JSON, no markdown:
       errorEl.classList.add('hidden');
       questionEl.value = '';
       lastResult = null;
+      lastAutoResult = null;
+      document.getElementById('test-system-results').classList.add('hidden');
       document.querySelectorAll('.challenge-card').forEach(c => c.classList.remove('active'));
       showScreen('screen-selector');
       window.scrollTo({ top: 0, behavior: 'smooth' });
