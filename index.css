@@ -290,6 +290,16 @@ label {
   font-weight: 600;
 }
 
+.key-note a {
+  color: var(--accent-teal);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.key-note a:hover {
+  text-decoration: underline;
+}
+
 /* Form inputs */
 input[type="password"],
 input[type="text"],
